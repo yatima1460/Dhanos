@@ -25,3 +25,6 @@ docs/
 
 # C
 *.o
+
+# Dhanos
+Build
