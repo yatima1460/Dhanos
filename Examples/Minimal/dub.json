@@ -1,0 +1,20 @@
+{
+    "name": "dhanos-example-minimal",
+    "description": "A Dhanos demo",
+    "targetType": "executable",
+    "targetName": "Minimal",
+    "sourceFiles": [
+        "Minimal.d"
+    ],
+    
+  
+   
+    "importPaths": [
+        "../../Source"
+      ],
+    "dependencies": {
+        "dhanos": {
+            "path": "../../"
+        }
+    }
+}
