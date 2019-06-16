@@ -6,23 +6,16 @@
 	"copyright": "Copyright © 2019, yatima1460",
 	"description": "Universal D webview UI library",
 	"license": "GPL-2.0",
-	
 	"libs-posix": [
-
-		"gtk+-3.0",
 		"webkit2gtk-4.0"
-	  ],
-	"targetType": "library",
-	"preBuildCommands-linux":
-	[
-		"echo PACKAGE_DIR=$PACKAGE_DIR",
-		"gcc -c $PACKAGE_DIR/Source/webview.c -DWEBVIEW_GTK=1 -DWEBVIEW_IMPLEMENTATION `pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.0` -o $PACKAGE_DIR/webview.o",
-		"echo webview.c compiled"
 	],
-
+	"targetType": "library",
+	"preBuildCommands-linux": [
+		"if [ $$DUB_BUILD_TYPE = \"debug\" ]; then echo webview.c debug compiled && gcc -c $PACKAGE_DIR/Source/webview.c -O0 -DWEBVIEW_GTK=1 -DWEBVIEW_IMPLEMENTATION `pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.0` -o $PACKAGE_DIR/webview.o; fi",
+		"if [ $$DUB_BUILD_TYPE = \"release\" ]; then echo webview.c release compiled && gcc -c $PACKAGE_DIR/Source/webview.c -O2 -DWEBVIEW_GTK=1 -DWEBVIEW_IMPLEMENTATION `pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.0` -o $PACKAGE_DIR/webview.o; fi",
+	],
 	"sourceFiles": [
 		"webview.o",
 		"Source/Dhanos.d"
 	]
-
 }
