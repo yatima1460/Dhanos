@@ -1,0 +1,19 @@
+{
+	"authors": [
+		"yatima1460"
+	],
+	"copyright": "Copyright © 2019, yatima1460",
+	"description": "Universal D webview UI library",
+	"license": "GPL-2.0",
+	"name": "dhanos",
+	"targetType": "library",
+	"preBuildCommands-linux":
+	[
+		"gcc -c webview.c -DWEBVIEW_GTK=1 -DWEBVIEW_IMPLEMENTATION `pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.0`"
+	],
+	"sourceFiles": [
+		"webview.o",
+		"Source/Dhanos.d"
+	]
+
+}
