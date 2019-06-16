@@ -16,5 +16,11 @@
         "dhanos": {
             "path": "../../"
         }
+    },
+    "targetPath": "Build/Dhanos.Example.Minimal-$PLATFORM-$ARCH-$BUILD_TYPE",
+    "toolchainRequirements": {
+        "dmd": ">=2.086.0",
+        "gdc": "no",
+        "ldc": "no"
     }
 }
