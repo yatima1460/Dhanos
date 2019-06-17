@@ -11,6 +11,7 @@
 	],
 	"targetType": "library",
 	"preBuildCommands-linux": [
+		"rm $PACKAGE_DIR/webview.o",
 		"if [ $$DUB_BUILD_TYPE = \"debug\" ]; then echo webview.c debug compiled && gcc -c $PACKAGE_DIR/Source/webview.c -O0 -DWEBVIEW_GTK=1 -DWEBVIEW_IMPLEMENTATION `pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.0` -o $PACKAGE_DIR/webview.o; fi",
 		"if [ $$DUB_BUILD_TYPE = \"release\" ]; then echo webview.c release compiled && gcc -c $PACKAGE_DIR/Source/webview.c -O2 -DWEBVIEW_GTK=1 -DWEBVIEW_IMPLEMENTATION `pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.0` -o $PACKAGE_DIR/webview.o; fi",
 	],
