@@ -1,0 +1,23 @@
+{
+    "name": "dhanos-example-borderless",
+    "description": "A Dhanos demo",
+    "targetType": "executable",
+    "targetName": "Borderless",
+    "sourceFiles": [
+        "Borderless.d"
+    ],
+    "importPaths": [
+        "../../Source"
+    ],
+    "dependencies": {
+        "dhanos": {
+            "path": "../../"
+        }
+    },
+    "targetPath": "Build/Dhanos.Example.Borderless-$PLATFORM-$ARCH-$BUILD_TYPE",
+    "toolchainRequirements": {
+        "dmd": ">=2.086.0",
+        "gdc": "no",
+        "ldc": "no"
+    }
+}
