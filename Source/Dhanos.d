@@ -106,11 +106,19 @@ class Dhanos
         //         writeln("exit done");
         //         import core.stdc.stdlib : exit;
         //         exit(0);
-
-        while (webview_loop(&data, 1) == 0)
+        version (linux)
         {
-
+            while (!data.priv.should_exit)
+            {
+                gtk_main_iteration_do(true);
+            }
         }
+      
+
+        // while (webview_loop(&data, 1) == 0)
+        // {
+
+        // }
 
         webview_exit(&data);
 
