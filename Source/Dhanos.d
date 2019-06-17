@@ -29,6 +29,9 @@ version (linux)
 
     extern (C) int gtk_main_iteration_do(int);
 
+    extern (C) void gtk_window_fullscreen(GtkWindow*);
+    extern (C) void gtk_window_unfullscreen(GtkWindow*);
+
     enum GtkWindowType
     {
         GTK_WINDOW_TOPLEVEL,
@@ -87,6 +90,18 @@ class Dhanos
     int height;
     bool resizable;
     webview data;
+
+    void setFullscreen(bool fullscreen)
+    {
+        if (fullscreen)
+        {
+            gtk_window_fullscreen(cast(GtkWindow*) data.priv.window);
+        }
+        else
+        {
+            gtk_window_unfullscreen(cast(GtkWindow*) data.priv.window);
+        }
+    }
 
     void mainLoop()
     {
