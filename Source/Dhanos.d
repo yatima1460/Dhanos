@@ -2,27 +2,39 @@ module Dhanos;
 
 import std.string : toStringz;
 
-//extern (C) int webview(const char* title, const char* url, int width, int height, int resizable);
 
-extern (C) int gtk_init_check(int, void*);
+version (linux)
+{
 
-extern (C) struct GAsyncQueue;
-extern (C) GAsyncQueue* g_async_queue_new();
+    // GLIB GAsyncQueue
+    extern (C) struct GAsyncQueue;
+    extern (C) GAsyncQueue* g_async_queue_new();
 
-//extern (C) GtkWindow* GTK_WINDOW(GtkWidget*);
-extern (C) struct GtkWidget;
-extern (C) void gtk_widget_set_size_request(GtkWidget*, int, int);
-extern (C) void gtk_widget_show_all(GtkWidget*);
+    // GTK general
+    extern (C) int gtk_init_check(int* argc, char*** argv);
 
-extern (C) struct GtkWindow;
-extern (C) GtkWidget* gtk_window_new(int);
-extern (C) void gtk_window_set_title(GtkWidget*, const char*);
-extern (C) void gtk_window_set_default_size(GtkWidget*, int, int);
-extern (C) void gtk_window_set_resizable(GtkWidget*, int);
+    // GTK widget
+    extern (C) struct GtkWidget;
+    extern (C) void gtk_widget_set_size_request(GtkWidget*, int, int);
+    extern (C) void gtk_widget_show_all(GtkWidget*);
 
-extern (C) int gtk_main_iteration_do(int);
+    // GTK window
+    extern (C) struct GtkWindow;
+    //extern (C) GtkWindow* GTK_WINDOW(GtkWidget*);
+    //extern (C) GtkWindow* gtk_window_new(int);
+    extern (C) void gtk_window_set_title(GtkWindow*, const char*);
+    extern (C) void gtk_window_set_default_size(GtkWindow*, int, int);
+    extern (C) void gtk_window_set_resizable(GtkWindow*, bool);
+    extern (C) void gtk_window_set_decorated(GtkWindow*, bool);
 
-extern (C) void gtk_window_set_decorated(GtkWidget*,int);
+    extern (C) int gtk_main_iteration_do(int);
+
+    enum GtkWindowType
+    {
+        GTK_WINDOW_TOPLEVEL,
+        GTK_WINDOW_POPUP
+    };
+}
 //extern (C) enum GtkWindowType;
 
 struct webview_priv
@@ -54,16 +66,13 @@ struct webview
     void* userdata;
 };
 
+//extern (C) int webview(const char* title, const char* url, int width, int height, int resizable);
 extern (C) int webview_init(webview* w);
 extern (C) int webview_loop(webview* w, int blocking);
 extern (C) int webview_eval(webview* w, const char* js);
 extern (C) void webview_exit(webview* w);
 
-enum GtkWindowType
-{
-    GTK_WINDOW_TOPLEVEL,
-    GTK_WINDOW_POPUP
-};
+
 
 class Dhanos
 {
@@ -79,10 +88,10 @@ class Dhanos
     bool resizable;
     webview data;
 
-
     void mainLoop()
     {
         import std.stdio : writeln;
+
         // version (GTK)
         // {
         // while (gtk_main_iteration_do(true) == 1)
@@ -90,22 +99,21 @@ class Dhanos
         // }
         // }
 
-    
-//         while (webview_loop(&w, true) == 0) {
-//             }
-//   writeln("loop done");
-//         webview_exit(&w);
-//         writeln("exit done");
-//         import core.stdc.stdlib : exit;
-//         exit(0);
+        //         while (webview_loop(&w, true) == 0) {
+        //             }
+        //   writeln("loop done");
+        //         webview_exit(&w);
+        //         writeln("exit done");
+        //         import core.stdc.stdlib : exit;
+        //         exit(0);
 
+        while (webview_loop(&data, 1) == 0)
+        {
 
-        while (webview_loop(&data, 1) == 0) {
-             writeln("loop ");
-            }
-           
-            webview_exit(&data);
-        
+        }
+
+        webview_exit(&data);
+
     }
 
     // this(immutable(string) title, int width, int height, bool resizable)
@@ -172,8 +180,6 @@ class Dhanos
     //     // return 0;
     // }
 
- 
-
     this(immutable(string) title, immutable(string) url, int width, int height, bool resizable)
     {
         this.title = title;
@@ -195,10 +201,16 @@ class Dhanos
         }
     }
 
-
     void setBorder(bool visible)
     {
-        gtk_window_set_decorated(data.priv.window,visible);
+        version (linux)
+        {
+            gtk_window_set_decorated(cast(GtkWindow*) data.priv.window, visible);
+        }
+        version (Windows)
+        {
+
+        }
     }
 
     // static int launch(immutable(string) title, immutable(string) url, int width,  int height, bool resizable)
