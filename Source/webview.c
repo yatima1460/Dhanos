@@ -347,6 +347,23 @@ WEBVIEW_API int webview_init(struct webview *w) {
   return 0;
 }
 
+WEBVIEW_API int webview_loop(struct webview *w, int blocking) {
+  gtk_main_iteration_do(blocking);
+  return w->priv.should_exit;
+}
+
+WEBVIEW_API void webview_set_title(struct webview *w, const char *title) {
+  gtk_window_set_title(GTK_WINDOW(w->priv.window), title);
+}
+
+WEBVIEW_API void webview_set_fullscreen(struct webview *w, int fullscreen) {
+  if (fullscreen) {
+    gtk_window_fullscreen(GTK_WINDOW(w->priv.window));
+  } else {
+    gtk_window_unfullscreen(GTK_WINDOW(w->priv.window));
+  }
+}
+
 WEBVIEW_API void webview_set_color(struct webview *w, uint8_t r, uint8_t g,
                                    uint8_t b, uint8_t a) {
   GdkRGBA color = {r / 255.0, g / 255.0, b / 255.0, a / 255.0};
