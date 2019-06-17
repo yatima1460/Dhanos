@@ -21,6 +21,8 @@ extern (C) void gtk_window_set_default_size(GtkWidget*, int, int);
 extern (C) void gtk_window_set_resizable(GtkWidget*, int);
 
 extern (C) int gtk_main_iteration_do(int);
+
+extern (C) void gtk_window_set_decorated(GtkWidget*,int);
 //extern (C) enum GtkWindowType;
 
 struct webview_priv
@@ -191,6 +193,12 @@ class Dhanos
         {
             throw new Exception("Error starting webview");
         }
+    }
+
+
+    void setBorder(bool visible)
+    {
+        gtk_window_set_decorated(data.priv.window,visible);
     }
 
     // static int launch(immutable(string) title, immutable(string) url, int width,  int height, bool resizable)
