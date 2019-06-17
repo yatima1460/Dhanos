@@ -1,20 +1,24 @@
 <h1>Borderless Example</h1>
-This is a borderless non resizable window loading a local file called "index.html", close this by pressing ESC, it will use a javascript code to communicate with D to notify to close the native window
+This is a borderless non resizable window loading a local file called "index.html", close this by pressing ESC, it will
+use a javascript code to communicate with D to notify to close the native window
 
 <script>
-    document.onkeydown = function(evt) {
-    evt = evt || window.event;
-    var isEscape = false;
-    if ("key" in evt) {
-        isEscape = (evt.key === "Escape" || evt.key === "Esc");
-    } else {
-        isEscape = (evt.keyCode === 27);
+    document.onload = function () {
+        //window.external.invoke('page loaded');
     }
-    if (isEscape) {
-        alert("The window will close");
-        console.log("The window will close");
-        document.write("The window will close");
-        window.external.invoke("exit");
-    }
-};
+    document.onkeydown = function (evt) {
+        evt = evt || window.event;
+        var isEscape = false;
+        if ("key" in evt) {
+            isEscape = (evt.key === "Escape" || evt.key === "Esc");
+        } else {
+            isEscape = (evt.keyCode === 27);
+        }
+        if (isEscape) {
+            //alert("The window will close");
+            console.log("The window will close");
+            document.write("The window will close");
+            window.external.invoke("exit");
+        }
+    };
 </script>
