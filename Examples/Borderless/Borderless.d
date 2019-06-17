@@ -3,6 +3,15 @@ module Examples.Minimal;
 import std.path : dirName, buildNormalizedPath, absolutePath, buildPath;
 import Dhanos : Dhanos;
 
+import Dhanos : webview;
+   import std.stdio : writeln;
+
+void callback(immutable(string) value)
+{
+    writeln("a");
+    
+}
+
 int main(string[] args)
 {
     immutable(string) title = "Borderless Window";
@@ -13,6 +22,8 @@ int main(string[] args)
     immutable bool resizable = false;
     Dhanos d = new Dhanos(title, url, width, height, resizable);
     d.setBorder(false);
+    auto f = &callback;
+    d.setJSCallback(f);
     d.mainLoop();
     return 0;
 }
