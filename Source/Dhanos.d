@@ -123,7 +123,15 @@ class Dhanos
         webview_exit(&data);
 
     }
+    
 
+    void setTitle(immutable(string) title)
+    {
+        version (linux)
+        {
+            gtk_window_set_title(cast(GtkWindow*)data.priv.window, toStringz(title));
+        }   
+    }
     // this(immutable(string) title, int width, int height, bool resizable)
     // {
 
