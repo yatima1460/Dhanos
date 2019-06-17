@@ -54,7 +54,10 @@ struct webview_priv
 
 //alias void (*webview_external_invoke_cb_t)(struct webview *w, const char *arg);
 
-extern (C) alias webview_external_invoke_cb_t = int function(webview, const char*);
+//extern (C) alias webview_external_invoke_cb_t = int function(webview, const char*);
+
+
+alias webview_external_invoke_cb_t = void function(webview *w, const char * arg);
 
 struct webview
 {
@@ -71,9 +74,12 @@ struct webview
 
 //extern (C) int webview(const char* title, const char* url, int width, int height, int resizable);
 extern (C) int webview_init(webview* w);
-
+extern (C) int webview_loop(webview* w, bool);
 extern (C) int webview_eval(webview* w, const char* js);
 extern (C) void webview_exit(webview* w);
+
+alias webview_dispatch_fn = void function(webview *w, void *arg);
+extern (C) void webview_dispatch(webview *w, webview_dispatch_fn fn, void *arg);
 
 
 
@@ -190,7 +196,7 @@ class Dhanos
 
         // }
 
-        webview_exit(&data);
+        //webview_exit(&data);
 
     }
     
@@ -265,6 +271,59 @@ class Dhanos
     //     //         G_CALLBACK(webview_destroy_cb), w);
     //     // return 0;
     // }
+private:
+    void function(immutable(string)) callback;
+
+  import std.stdio : writeln;
+public:
+ import std.string : fromStringz;
+    void raw_callback(webview* wv, const char* arg)
+    in (wv != null)
+    in (arg != null)
+    {
+     //writeln("raw_callback s");
+      
+     
+        
+         if (wv == null)
+            throw new Exception("Webview in JS=>D raw callback is null!");
+        if (arg == null)
+            throw new Exception("Javascript callback argument can't be null!");
+        if (this.callback == null)
+            throw new Exception("JS=>D callback can't be null!");
+
+//         //writeln(fromStringz(cast(char*)arg));
+
+
+        immutable(string) s = cast(immutable(string))fromStringz(cast(char*)arg);
+        writeln("raw_callback e");
+        this.callback(s);
+          //writeln("raw_callback e");
+    }
+   
+    void function(immutable(string)) getJSCallback()
+    {
+        return callback;
+    }
+
+    void setJSCallback(void function(immutable(string)) cb)
+    in (cb != null)
+    
+    {
+         writeln("setJSCallback s");
+        import std.stdio : writeln;
+        import std.conv : to;
+        // writeln("Callback set to "~to!string(cb));
+         if (cb == null)
+            throw new Exception("D JS input callback is null!");
+
+        // writeln(cb);
+        this.callback = cb;
+        //    writeln(this.callback);
+       
+        //webview_dispatch(&data,callback,null);
+      writeln("setJSCallback e");
+    }
 
     this(immutable(string) title, immutable(string) url, int width, int height, bool resizable)
     {
@@ -285,10 +344,14 @@ class Dhanos
         {
             throw new Exception("Error starting webview");
         }
+     
+        auto d = &this.raw_callback;
+        data.external_invoke_cb = d.funcptr;
     }
 
     void setBorder(bool visible)
     {
+         writeln("setBorder s");
         version (linux)
         {
             gtk_window_set_decorated(cast(GtkWindow*) data.priv.window, visible);
@@ -297,6 +360,7 @@ class Dhanos
         {
 
         }
+         writeln("setBorder e");
     }
 
     // static int launch(immutable(string) title, immutable(string) url, int width,  int height, bool resizable)
