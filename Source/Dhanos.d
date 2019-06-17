@@ -71,7 +71,7 @@ struct webview
 
 //extern (C) int webview(const char* title, const char* url, int width, int height, int resizable);
 extern (C) int webview_init(webview* w);
-extern (C) int webview_loop(webview* w, int blocking);
+
 extern (C) int webview_eval(webview* w, const char* js);
 extern (C) void webview_exit(webview* w);
 
@@ -93,13 +93,68 @@ class Dhanos
 
     void setFullscreen(bool fullscreen)
     {
-        if (fullscreen)
+        version (linux)
         {
-            gtk_window_fullscreen(cast(GtkWindow*) data.priv.window);
+            if (fullscreen)
+            {
+                gtk_window_fullscreen(cast(GtkWindow*) data.priv.window);
+            }
+            else
+            {
+                gtk_window_unfullscreen(cast(GtkWindow*) data.priv.window);
+            }
         }
-        else
+        version (Windows)
         {
-            gtk_window_unfullscreen(cast(GtkWindow*) data.priv.window);
+            if (data.priv.is_fullscreen == !!fullscreen)
+            {
+                return;
+            }
+            if (data.priv.is_fullscreen == 0)
+            {
+                data.priv.saved_style = GetWindowLong(data.priv.hwnd, GWL_STYLE);
+                data.priv.saved_ex_style = GetWindowLong(data.priv.hwnd, GWL_EXSTYLE);
+                GetWindowRect(data.priv.hwnd,  & data.priv.saved_rect);
+            }
+            data.priv.is_fullscreen = !!fullscreen;
+            if (fullscreen)
+            {
+                MONITORINFO monitor_info;
+                SetWindowLong(data.priv.hwnd, GWL_STYLE,
+                        data.priv.saved_style &  ~ (WS_CAPTION | WS_THICKFRAME));
+                SetWindowLong(data.priv.hwnd, GWL_EXSTYLE, data.priv.saved_ex_style &  ~ (
+                        WS_EX_DLGMODALFRAME | WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE | WS_EX_STATICEDGE));
+                monitor_info.cbSize = sizeof(monitor_info);
+                GetMonitorInfo(MonitorFromWindow(data.priv.hwnd,
+                        MONITOR_DEFAULTTONEAREST),  & monitor_info);
+                RECT r;
+                r.left = monitor_info.rcMonitor.left;
+                r.top = monitor_info.rcMonitor.top;
+                r.right = monitor_info.rcMonitor.right;
+                r.bottom = monitor_info.rcMonitor.bottom;
+                SetWindowPos(data.priv.hwnd, NULL, r.left, r.top,
+                        r.right - r.left, r.bottom - r.top,
+                        SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
+            }
+            else
+            {
+                SetWindowLong(data.priv.hwnd, GWL_STYLE, data.priv.saved_style);
+                SetWindowLong(data.priv.hwnd, GWL_EXSTYLE, data.priv.saved_ex_style);
+                SetWindowPos(data.priv.hwnd, NULL, data.priv.saved_rect.left,
+                        data.priv.saved_rect.top,
+                        data.priv.saved_rect.right - data.priv.saved_rect.left,
+                        data.priv.saved_rect.bottom - data.priv.saved_rect.top,
+                        SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
+            }
+        }
+        version (OSX)
+        {
+            ulong windowStyleMask = cast(ulong) objc_msgSend(data.priv.window, sel_registerName("styleMask"));
+            immutable(int) b = (((windowStyleMask & NSWindowStyleMaskFullScreen) == NSWindowStyleMaskFullScreen) ? 1 : 0);
+            if (b != fullscreen)
+            {
+                objc_msgSend(data.priv.window, sel_registerName("toggleFullScreen:"), NULL);
+            }
         }
     }
 
