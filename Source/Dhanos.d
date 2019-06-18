@@ -2,7 +2,6 @@ module Dhanos;
 
 import std.string : toStringz;
 
-
 version (linux)
 {
 
@@ -56,8 +55,7 @@ struct webview_priv
 
 //extern (C) alias webview_external_invoke_cb_t = int function(webview, const char*);
 
-
-alias webview_external_invoke_cb_t = void function(webview *w, const char * arg);
+alias webview_external_invoke_cb_t = void function(webview* w, const char* arg);
 
 struct webview
 {
@@ -78,10 +76,12 @@ extern (C) int webview_loop(webview* w, bool);
 extern (C) int webview_eval(webview* w, const char* js);
 extern (C) void webview_exit(webview* w);
 
-alias webview_dispatch_fn = void function(webview *w, void *arg);
-extern (C) void webview_dispatch(webview *w, webview_dispatch_fn fn, void *arg);
+alias webview_dispatch_fn = void function(webview* w, void* arg);
+extern (C) void webview_dispatch(webview* w, webview_dispatch_fn fn, void* arg);
 
 
+import std.stdio : writeln;
+import std.string : fromStringz;
 
 class Dhanos
 {
@@ -120,19 +120,19 @@ class Dhanos
             {
                 data.priv.saved_style = GetWindowLong(data.priv.hwnd, GWL_STYLE);
                 data.priv.saved_ex_style = GetWindowLong(data.priv.hwnd, GWL_EXSTYLE);
-                GetWindowRect(data.priv.hwnd,  & data.priv.saved_rect);
+                GetWindowRect(data.priv.hwnd, &data.priv.saved_rect);
             }
             data.priv.is_fullscreen = !!fullscreen;
             if (fullscreen)
             {
                 MONITORINFO monitor_info;
                 SetWindowLong(data.priv.hwnd, GWL_STYLE,
-                        data.priv.saved_style &  ~ (WS_CAPTION | WS_THICKFRAME));
-                SetWindowLong(data.priv.hwnd, GWL_EXSTYLE, data.priv.saved_ex_style &  ~ (
+                        data.priv.saved_style & ~(WS_CAPTION | WS_THICKFRAME));
+                SetWindowLong(data.priv.hwnd, GWL_EXSTYLE, data.priv.saved_ex_style & ~(
                         WS_EX_DLGMODALFRAME | WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE | WS_EX_STATICEDGE));
                 monitor_info.cbSize = sizeof(monitor_info);
                 GetMonitorInfo(MonitorFromWindow(data.priv.hwnd,
-                        MONITOR_DEFAULTTONEAREST),  & monitor_info);
+                        MONITOR_DEFAULTTONEAREST), &monitor_info);
                 RECT r;
                 r.left = monitor_info.rcMonitor.left;
                 r.top = monitor_info.rcMonitor.top;
@@ -147,16 +147,17 @@ class Dhanos
                 SetWindowLong(data.priv.hwnd, GWL_STYLE, data.priv.saved_style);
                 SetWindowLong(data.priv.hwnd, GWL_EXSTYLE, data.priv.saved_ex_style);
                 SetWindowPos(data.priv.hwnd, NULL, data.priv.saved_rect.left,
-                        data.priv.saved_rect.top,
-                        data.priv.saved_rect.right - data.priv.saved_rect.left,
+                        data.priv.saved_rect.top, data.priv.saved_rect.right - data.priv.saved_rect.left,
                         data.priv.saved_rect.bottom - data.priv.saved_rect.top,
                         SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
             }
         }
         version (OSX)
         {
-            ulong windowStyleMask = cast(ulong) objc_msgSend(data.priv.window, sel_registerName("styleMask"));
-            immutable(int) b = (((windowStyleMask & NSWindowStyleMaskFullScreen) == NSWindowStyleMaskFullScreen) ? 1 : 0);
+            ulong windowStyleMask = cast(ulong) objc_msgSend(data.priv.window,
+                    sel_registerName("styleMask"));
+            immutable(int) b = (((windowStyleMask & NSWindowStyleMaskFullScreen) == NSWindowStyleMaskFullScreen)
+                    ? 1 : 0);
             if (b != fullscreen)
             {
                 objc_msgSend(data.priv.window, sel_registerName("toggleFullScreen:"), NULL);
@@ -189,7 +190,6 @@ class Dhanos
                 gtk_main_iteration_do(true);
             }
         }
-      
 
         // while (webview_loop(&data, 1) == 0)
         // {
@@ -199,14 +199,13 @@ class Dhanos
         //webview_exit(&data);
 
     }
-    
 
     void setTitle(immutable(string) title)
     {
         version (linux)
         {
-            gtk_window_set_title(cast(GtkWindow*)data.priv.window, toStringz(title));
-        }   
+            gtk_window_set_title(cast(GtkWindow*) data.priv.window, toStringz(title));
+        }
     }
     // this(immutable(string) title, int width, int height, bool resizable)
     // {
@@ -274,56 +273,44 @@ class Dhanos
 private:
     void function(immutable(string)) callback;
 
-  import std.stdio : writeln;
+
+
 public:
- import std.string : fromStringz;
+
+
     void raw_callback(webview* wv, const char* arg)
-    in (wv != null)
-    in (arg != null)
+    in(wv != null)
+    in(arg != null)
     {
-     //writeln("raw_callback s");
-      
-     
-        
-         if (wv == null)
+        if (wv == null)
             throw new Exception("Webview in JS=>D raw callback is null!");
         if (arg == null)
             throw new Exception("Javascript callback argument can't be null!");
         if (this.callback == null)
             throw new Exception("JS=>D callback can't be null!");
 
-//         //writeln(fromStringz(cast(char*)arg));
-
-
-        immutable(string) s = cast(immutable(string))fromStringz(cast(char*)arg);
-        writeln("raw_callback e");
+        immutable(string) s = cast(immutable(string)) fromStringz(cast(char*) arg);
         this.callback(s);
-          //writeln("raw_callback e");
     }
-   
+
     void function(immutable(string)) getJSCallback()
     {
         return callback;
     }
 
     void setJSCallback(void function(immutable(string)) cb)
-    in (cb != null)
-    
+    in(cb != null)
     {
-         writeln("setJSCallback s");
-        import std.stdio : writeln;
-        import std.conv : to;
-        // writeln("Callback set to "~to!string(cb));
-         if (cb == null)
+        if (cb == null)
             throw new Exception("D JS input callback is null!");
-
-        // writeln(cb);
         this.callback = cb;
-        //    writeln(this.callback);
-       
-        //webview_dispatch(&data,callback,null);
-      writeln("setJSCallback e");
     }
+
+    // void noop_callback(immutable(string) value)
+    // {
+    //         writeln("noop_callback");
+
+    // }
 
     this(immutable(string) title, immutable(string) url, int width, int height, bool resizable)
     {
@@ -344,14 +331,16 @@ public:
         {
             throw new Exception("Error starting webview");
         }
-     
+
         auto d = &this.raw_callback;
-        data.external_invoke_cb = d.funcptr;
+        data.external_invoke_cb = cast(void function(webview* w, const(char*) arg)) d.ptr;
+
+        //auto d = &noop_callback;
+        //this.callback = d.funcptr;
     }
 
     void setBorder(bool visible)
     {
-         writeln("setBorder s");
         version (linux)
         {
             gtk_window_set_decorated(cast(GtkWindow*) data.priv.window, visible);
@@ -360,7 +349,6 @@ public:
         {
 
         }
-         writeln("setBorder e");
     }
 
     // static int launch(immutable(string) title, immutable(string) url, int width,  int height, bool resizable)
