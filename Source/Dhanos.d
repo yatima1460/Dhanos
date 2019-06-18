@@ -127,8 +127,8 @@ struct webview
 };
 
 //extern (C) int webview(const char* title, const char* url, int width, int height, int resizable);
-extern (C) int webview_init(webview* w);
-extern (C) int webview_loop(webview* w, bool);
+// extern (C) int webview_init(webview* w);
+// extern (C) int webview_loop(webview* w, bool);
 extern (C) int webview_eval(webview* w, const char* js);
 extern (C) void webview_exit(webview* w);
 
@@ -156,22 +156,39 @@ enum WebKitLoadEvent
     WEBKIT_LOAD_FINISHED
 };
 
+alias JSGlobalContextRef = void*;
+alias JSValueRef = void*;
+alias JSStringRef = void*;
+extern (C) JSStringRef JSValueToStringCopy(JSGlobalContextRef,JSValueRef,void*);
+extern (C) size_t  JSStringGetMaximumUTF8CStringSize(JSStringRef);
+
+extern (C) JSGlobalContextRef webkit_javascript_result_get_global_context(
+        WebKitJavascriptResult* js_result);
+
+ extern (C)        JSValueRef
+webkit_javascript_result_get_value (WebKitJavascriptResult *js_result);
+
+extern (C) void JSStringGetUTF8CString(JSStringRef,char*,size_t);
+
+extern (C) void JSStringRelease(JSStringRef);
+
 void external_message_received_cb(WebKitUserContentManager* m, WebKitJavascriptResult* r, void* arg)
 {
   
-    // webview * w = cast(webview *) arg;
-    // if (w.external_invoke_cb == null)
-    // {
-    //     return;
-    // }
-    // JSGlobalContextRef context = webkit_javascript_result_get_global_context(r);
-    // JSValueRef value = webkit_javascript_result_get_value(r);
-    // JSStringRef js = JSValueToStringCopy(context, value, NULL);
-    // size_t n = JSStringGetMaximumUTF8CStringSize(js);
+    webview * w = cast(webview *) arg;
+    if (w.external_invoke_cb == null)
+    {
+        return;
+    }
+    JSGlobalContextRef context = webkit_javascript_result_get_global_context(r);
+    JSValueRef value = webkit_javascript_result_get_value(r);
+    JSStringRef js = JSValueToStringCopy(context, value, null);
+    size_t n = JSStringGetMaximumUTF8CStringSize(js);
     // char* s = g_new(char, n);
-    // JSStringGetUTF8CString(js, s, n);
-    // w.external_invoke_cb(w, s);
-    // JSStringRelease(js);
+    char[] s = new char[n];
+    JSStringGetUTF8CString(js, cast(char*)s, n);
+     w.external_invoke_cb(w,  cast(char*)s);
+     JSStringRelease(js);
     // g_free(s);
 }
 
