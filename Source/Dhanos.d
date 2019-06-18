@@ -43,20 +43,19 @@ version (linux)
     extern (C) void gtk_window_unfullscreen(GtkWindow*);
     extern (C) void gtk_window_set_position(GtkWindow*, GtkWindowPosition);
 
-   enum GConnectFlags
-   {
-       G_CONNECT_AFTER,
-       G_CONNECT_SWAPPED
-   };
+    enum GConnectFlags
+    {
+        G_CONNECT_AFTER,
+        G_CONNECT_SWAPPED
+    };
 
-    extern (C) void g_signal_connect_data (void* instance, const char* detailed_signal, void* c_handler, void* data, void* destroy_data, GConnectFlags connect_flags);
-    alias g_signal_connect = g_signal_connect_data;
-    
+    extern (C) void g_signal_connect_data(void* instance, const char* detailed_signal,
+            void* c_handler, void* data, void* destroy_data, GConnectFlags connect_flags);
+   
 
     extern (C) struct GtkAdjustment;
-    extern (C) GtkWidget *
-gtk_scrolled_window_new (GtkAdjustment *hadjustment,
-                         GtkAdjustment *vadjustment);
+    extern (C) GtkWidget* gtk_scrolled_window_new(GtkAdjustment* hadjustment,
+            GtkAdjustment* vadjustment);
 
     extern (C) struct GtkContainer;
     extern (C) GtkContainer* GTK_CONTAINER(GtkWidget*);
@@ -65,7 +64,7 @@ gtk_scrolled_window_new (GtkAdjustment *hadjustment,
     extern (C) struct WebKitUserContentManager;
 
     extern (C) GObject* G_OBJECT(GtkWidget*);
-    
+
     extern (C) void* G_CALLBACK(void*);
 
     extern (C) WebKitWebView* WEBKIT_WEB_VIEW(GtkWidget*);
@@ -111,7 +110,7 @@ struct webview_priv
 
 //extern (C) alias webview_external_invoke_cb_t = int function(webview, const char*);
 
-alias webview_external_invoke_cb_t = void function(webview* w, const char* arg);
+alias webview_external_invoke_cb_t = void function(Dhanos w, immutable(string) arg);
 
 struct webview
 {
@@ -124,6 +123,7 @@ struct webview
     webview_external_invoke_cb_t external_invoke_cb;
     webview_priv priv;
     void* userdata;
+    Dhanos dhanos_ptr;
 };
 
 //extern (C) int webview(const char* title, const char* url, int width, int height, int resizable);
@@ -159,50 +159,80 @@ enum WebKitLoadEvent
 alias JSGlobalContextRef = void*;
 alias JSValueRef = void*;
 alias JSStringRef = void*;
-extern (C) JSStringRef JSValueToStringCopy(JSGlobalContextRef,JSValueRef,void*);
-extern (C) size_t  JSStringGetMaximumUTF8CStringSize(JSStringRef);
+extern (C) JSStringRef JSValueToStringCopy(JSGlobalContextRef, JSValueRef, void*);
+extern (C) size_t JSStringGetMaximumUTF8CStringSize(JSStringRef);
 
 extern (C) JSGlobalContextRef webkit_javascript_result_get_global_context(
         WebKitJavascriptResult* js_result);
 
- extern (C)        JSValueRef
-webkit_javascript_result_get_value (WebKitJavascriptResult *js_result);
+extern (C) JSValueRef webkit_javascript_result_get_value(WebKitJavascriptResult* js_result);
 
-extern (C) void JSStringGetUTF8CString(JSStringRef,char*,size_t);
+extern (C) void JSStringGetUTF8CString(JSStringRef, char*, size_t);
 
 extern (C) void JSStringRelease(JSStringRef);
 
 void external_message_received_cb(WebKitUserContentManager* m, WebKitJavascriptResult* r, void* arg)
 {
-  
-    webview * w = cast(webview *) arg;
-    if (w.external_invoke_cb == null)
-    {
-        return;
-    }
+
+    writeln("external_message_received_cb s");
+    Dhanos* w = cast(Dhanos*) arg;
+    
+    writeln(w.toString());
+    // if (w.callback == null)
+    // {
+    //     return;
+    // }
+    
     JSGlobalContextRef context = webkit_javascript_result_get_global_context(r);
     JSValueRef value = webkit_javascript_result_get_value(r);
     JSStringRef js = JSValueToStringCopy(context, value, null);
     size_t n = JSStringGetMaximumUTF8CStringSize(js);
     // char* s = g_new(char, n);
     char[] s = new char[n];
-    JSStringGetUTF8CString(js, cast(char*)s, n);
-     w.external_invoke_cb(w,  cast(char*)s);
-     JSStringRelease(js);
+    JSStringGetUTF8CString(js, cast(char*) s, n);
+
+    writeln("external_message_received_cb external_invoke_cb s");
+    const char* ss = cast(const char*)s;
+    immutable(string) js_command = cast(immutable)fromStringz(ss);
+    writeln("external_message_received_cb external_invoke_cb ss");
+    writeln(w);
+    // writeln(w.external_invoke_cb);
+    // writeln(w.dhanos_ptr);
+    writeln(js_command);
+    w.callback(js_command);
+    writeln("external_message_received_cb external_invoke_cb e");
+
+    JSStringRelease(js);
+    writeln("external_message_received_cb e");
     // g_free(s);
 }
 
-
 void webview_load_changed_cb(WebKitWebView* wwv, WebKitLoadEvent event, void* arg)
 {
-    webview* w = cast(webview*)arg;
-    
+    writeln("webview_load_changed_cb");
+    webview* w = cast(webview*) arg;
+
     if (event == WebKitLoadEvent.WEBKIT_LOAD_FINISHED)
     {
         w.priv.ready = 1;
     }
 }
 
+void raw_callback(Dhanos d, immutable(string) js_command)
+
+{
+    writeln("raw_callback");
+   
+    if (d is null)
+        throw new Exception("Dhanos object is null!");
+    if (js_command == null)
+        throw new Exception("Javascript callback argument can't be null!");
+    if (d.callback == null)
+        throw new Exception("JS=>D callback can't be null!");
+
+   
+    d.callback(js_command);
+}
 
 class Dhanos
 {
@@ -211,12 +241,12 @@ class Dhanos
     // GAsyncQueue* queue;
     // GtkWidget* window;
 
-    static immutable(string) DEFAULT_URL = "data:text/"                          ~
-    "html,%3C%21DOCTYPE%20html%3E%0A%3Chtml%20lang=%22en%22%3E%0A%3Chead%3E%"    ~
-    "3Cmeta%20charset=%22utf-8%22%3E%3Cmeta%20http-equiv=%22X-UA-Compatible%22%" ~
-    "20content=%22IE=edge%22%3E%3C%2Fhead%3E%0A%3Cbody%3E%3Cdiv%20id=%22app%22%" ~
-    "3E%3C%2Fdiv%3E%3Cscript%20type=%22text%2Fjavascript%22%3E%3C%2Fscript%3E%"  ~
-    "3C%2Fbody%3E%0A%3C%2Fhtml%3E";
+    static immutable(string) DEFAULT_URL = "data:text/"
+        ~ "html,%3C%21DOCTYPE%20html%3E%0A%3Chtml%20lang=%22en%22%3E%0A%3Chead%3E%"
+        ~ "3Cmeta%20charset=%22utf-8%22%3E%3Cmeta%20http-equiv=%22X-UA-Compatible%22%"
+        ~ "20content=%22IE=edge%22%3E%3C%2Fhead%3E%0A%3Cbody%3E%3Cdiv%20id=%22app%22%"
+        ~ "3E%3C%2Fdiv%3E%3Cscript%20type=%22text%2Fjavascript%22%3E%3C%2Fscript%3E%"
+        ~ "3C%2Fbody%3E%0A%3C%2Fhtml%3E";
 
     static immutable(string) checkURL(immutable(string) url)
     {
@@ -226,7 +256,6 @@ class Dhanos
         }
         return url;
     }
-
 
     string title;
     string url;
@@ -307,20 +336,6 @@ class Dhanos
     {
         import std.stdio : writeln;
 
-        // version (GTK)
-        // {
-        // while (gtk_main_iteration_do(true) == 1)
-        // {
-        // }
-        // }
-
-        //         while (webview_loop(&w, true) == 0) {
-        //             }
-        //   writeln("loop done");
-        //         webview_exit(&w);
-        //         writeln("exit done");
-        //         import core.stdc.stdlib : exit;
-        //         exit(0);
         version (linux)
         {
             while (!data.priv.should_exit)
@@ -328,14 +343,6 @@ class Dhanos
                 gtk_main_iteration_do(true);
             }
         }
-
-        // while (webview_loop(&data, 1) == 0)
-        // {
-
-        // }
-
-        //webview_exit(&data);
-
     }
 
     void setTitle(immutable(string) title)
@@ -409,23 +416,9 @@ class Dhanos
     //     // return 0;
     // }
 private:
-void function(immutable(string)) callback;
+    void function(immutable(string)) callback;
 
 public:
-void raw_callback(webview* wv, const char* arg)
-in(wv != null)
-in(arg != null)
-    {
-        if (wv == null)
-            throw new Exception("Webview in JS=>D raw callback is null!");
-        if (arg == null)
-            throw new Exception("Javascript callback argument can't be null!");
-        if (this.callback == null)
-            throw new Exception("JS=>D callback can't be null!");
-
-        immutable(string) s = cast(immutable(string)) fromStringz(cast(char*) arg);
-        this.callback(s);
-    }
 
     void function(immutable(string)) getJSCallback()
     {
@@ -452,12 +445,13 @@ in(arg != null)
         {
             return -1;
         }
+        
 
         w.priv.ready = 0;
         w.priv.should_exit = 0;
         w.priv.queue = g_async_queue_new();
         w.priv.window = cast(GtkWidget*) gtk_window_new(GtkWindowType.GTK_WINDOW_TOPLEVEL);
-        gtk_window_set_title(cast(GtkWindow*)w.priv.window, w.title);
+        gtk_window_set_title(cast(GtkWindow*) w.priv.window, w.title);
 
         if (w.resizable)
         {
@@ -468,30 +462,39 @@ in(arg != null)
             gtk_widget_set_size_request(w.priv.window, w.width, w.height);
         }
         gtk_window_set_resizable(cast(GtkWindow*)(w.priv.window), !!w.resizable);
-        gtk_window_set_position(cast(GtkWindow*)(w.priv.window), GtkWindowPosition.GTK_WIN_POS_CENTER);
+        gtk_window_set_position(cast(GtkWindow*)(w.priv.window),
+                GtkWindowPosition.GTK_WIN_POS_CENTER);
 
         w.priv.scroller = gtk_scrolled_window_new(null, null);
         gtk_container_add(cast(GtkContainer*)(w.priv.window), w.priv.scroller);
 
         WebKitUserContentManager* m = webkit_user_content_manager_new();
         webkit_user_content_manager_register_script_message_handler(m, "external");
-        g_signal_connect(cast(void*)m, cast(const char*)toStringz("script-message-received::external"), cast(void*)&external_message_received_cb, cast(void*)w,null,GConnectFlags.G_CONNECT_AFTER);
+        
+        g_signal_connect_data(cast(void*) m, cast(const char*) toStringz("script-message-received::external"),
+                cast(void*)&external_message_received_cb, cast(void*)this, null,  GConnectFlags.G_CONNECT_AFTER);
+               
 
         w.priv.webview = webkit_web_view_new_with_user_content_manager(m);
-        webkit_web_view_load_uri(cast(WebKitWebView*)(w.priv.webview), toStringz(checkURL(fromStringz(w.url).idup)));
-        g_signal_connect(cast(void*)w.priv.webview, cast(const char*)toStringz("load-changed"), &webview_load_changed_cb, cast(void*)w,null,GConnectFlags.G_CONNECT_AFTER);
+        webkit_web_view_load_uri(cast(WebKitWebView*)(w.priv.webview),
+                toStringz(checkURL(fromStringz(w.url).idup)));
+        g_signal_connect_data(cast(void*) w.priv.webview,
+                cast(const char*) toStringz("load-changed"), &webview_load_changed_cb,
+                cast(void*) w, null, GConnectFlags.G_CONNECT_AFTER);
         gtk_container_add(cast(GtkContainer*)(w.priv.scroller), w.priv.webview);
 
         debug
         {
-            WebKitSettings* settings = webkit_web_view_get_settings(cast(WebKitWebView*)(w.priv.webview));
+            WebKitSettings* settings = webkit_web_view_get_settings(
+                    cast(WebKitWebView*)(w.priv.webview));
             webkit_settings_set_enable_write_console_messages_to_stdout(settings, true);
             webkit_settings_set_enable_developer_extras(settings, true);
         }
         else
         {
-            g_signal_connect(G_OBJECT(w.priv.webview), "context-menu",
-                    G_CALLBACK(webview_context_menu_cb), w);
+            g_signal_connect_data(w.priv.webview, "context-menu",
+                    G_CALLBACK(webview_context_menu_cb), w, null,
+                GConnectFlags.G_CONNECT_AFTER);
         }
 
         gtk_widget_show_all(w.priv.window);
@@ -501,7 +504,9 @@ in(arg != null)
                 null, null, null);
 
         auto d = toStringz("destroy");
-        g_signal_connect(w.priv.window, cast(char*)d, cast(void*)&webview_destroy_cb, cast(void*)w,null,GConnectFlags.G_CONNECT_AFTER);
+        g_signal_connect_data(w.priv.window, cast(char*) d,
+                cast(void*)&webview_destroy_cb, cast(void*) w, null,
+                GConnectFlags.G_CONNECT_AFTER);
         return 0;
     }
 
@@ -518,15 +523,17 @@ in(arg != null)
         data.width = width;
         data.height = height;
         data.resizable = resizable;
+        data.dhanos_ptr = this;
+        writeln(data.dhanos_ptr);
 
         int r = webview_init(&data);
+         
         if (r != 0)
         {
             throw new Exception("Error starting webview");
         }
 
-        auto d = &this.raw_callback;
-        data.external_invoke_cb = cast(void function(webview* w, const(char*) arg)) d.ptr;
+        data.external_invoke_cb = cast(webview_external_invoke_cb_t)&raw_callback;
 
         //auto d = &noop_callback;
         //this.callback = d.funcptr;
