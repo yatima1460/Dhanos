@@ -1,28 +1,42 @@
 {
-	"name": "dhanos",
-	"authors": [
-		"yatima1460"
-	],
-	"copyright": "Copyright © 2019, yatima1460",
-	"description": "Universal D webview UI library",
-	"license": "GPL-2.0",
-	"libs-posix": [
-		"webkit2gtk-4.0"
-	],
-	"targetType": "library",
-	"preBuildCommands-linux": [
-		"rm $PACKAGE_DIR/webview.o",
-		"if [ $$DUB_BUILD_TYPE = \"debug\" ]; then echo webview.c debug compiled && gcc -c $PACKAGE_DIR/Source/webview.c -O0 -DWEBVIEW_GTK=1 -DWEBVIEW_IMPLEMENTATION `pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.0` -o $PACKAGE_DIR/webview.o; fi",
-		"if [ $$DUB_BUILD_TYPE = \"release\" ]; then echo webview.c release compiled && gcc -c $PACKAGE_DIR/Source/webview.c -O2 -DWEBVIEW_GTK=1 -DWEBVIEW_IMPLEMENTATION `pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.0` -o $PACKAGE_DIR/webview.o; fi",
-	],
-	"sourceFiles": [
-		"webview.o",
-		"Source/Dhanos.d"
-	],
-	"targetPath": "Build/Dhanos-$PLATFORM-$ARCH-$BUILD_TYPE",
-	"toolchainRequirements": {
-	  "dmd": ">=2.086.0",
-	  "gdc": "no",
-	  "ldc": "no"
-	}
+  "name": "dhanos",
+  "authors": ["yatima1460"],
+  "copyright": "Copyright © 2019, yatima1460",
+  "description": "Universal D webview UI library",
+  "license": "GPL-2.0",
+  "libs-windows": [
+    "User32",
+    "ole32",
+    "kernel32",
+    "shell32",
+
+    "Gdi32",
+    "Userenv",
+    "uuid",
+    "advapi32",
+    "oleaut32",
+    "comctl32"
+  ],
+  "libs-posix": ["webkit2gtk-4.0"],
+  "targetType": "executable",
+  "preBuildCommands-linux": [
+    "rm $PACKAGE_DIR/webview.o",
+    "if [ $$DUB_BUILD_TYPE = \"debug\" ]; then echo webview.c debug compiled && gcc -c $PACKAGE_DIR/Source/webview.c -O0 -DWEBVIEW_GTK=1 -DWEBVIEW_IMPLEMENTATION `pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.0` -o $PACKAGE_DIR/webview.o; fi",
+    "if [ $$DUB_BUILD_TYPE = \"release\" ]; then echo webview.c release compiled && gcc -c $PACKAGE_DIR/Source/webview.c -O2 -DWEBVIEW_GTK=1 -DWEBVIEW_IMPLEMENTATION `pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.0` -o $PACKAGE_DIR/webview.o; fi"
+  ],
+  "preBuildCommands-windows": [
+    "if not exist Build mkdir Build",
+    "C:\\WinBuilds\\bin\\gcc.exe -m64 -static -c Dhanos/webview.c -DWEBVIEW_WINAPI=1 -lole32 -lcomctl32 -loleaut32 -luuid -mwindows -o webview.lib"
+  ],
+  "sourceFiles": ["Dhanos/DhanosInterface.d", "Dhanos/Dhanos.d"],
+  "sourceFiles-linux": ["Dhanos/webview.o", "Dhanos/Source/Dhanos.d"],
+  "sourceFiles-windows": ["Dhanos/Dhanos_Windows.d", "webview.lib"],
+ 
+  "lflags-windows": ["/SUBSYSTEM:WINDOWS"],
+  "targetPath": "Build/",
+  "toolchainRequirements": {
+    "dmd": ">=2.086.0",
+    "gdc": "no",
+    "ldc": "no"
+  }
 }

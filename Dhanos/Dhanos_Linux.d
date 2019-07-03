@@ -94,17 +94,23 @@ version (linux)
 }
 // extern (C) enum GtkWindowType;
 
-struct webview_priv
-{
-    GtkWidget* window;
-    GtkWidget* scroller;
-    GtkWidget* webview;
-    GtkWidget* inspector_window;
-    GAsyncQueue* queue;
-    int ready;
-    int js_busy;
-    int should_exit;
-};
+
+    struct webview_priv
+    {
+        version (linux)
+        {
+        GtkWidget* window;
+        GtkWidget* scroller;
+        GtkWidget* webview;
+        GtkWidget* inspector_window;
+        GAsyncQueue* queue;
+        }
+        int ready;
+        int js_busy;
+        int should_exit;
+    };
+
+
 
 //alias void (*webview_external_invoke_cb_t)(struct webview *w, const char *arg);
 
@@ -121,7 +127,10 @@ struct webview
     int resizable;
     int webview_debug;
     webview_external_invoke_cb_t external_invoke_cb;
+    
     webview_priv priv;
+    
+
     void* userdata;
     Dhanos dhanos_ptr;
 };
@@ -138,12 +147,14 @@ extern (C) void webview_dispatch(webview* w, webview_dispatch_fn fn, void* arg);
 import std.stdio : writeln;
 import std.string : fromStringz;
 
-void webview_destroy_cb(GtkWidget* widget, void* arg)
+version (linux)
 {
-    webview* w = cast(webview*) arg;
-    version (linux)
+    void webview_destroy_cb(GtkWidget* widget, void* arg)
     {
-        w.priv.should_exit = 1;
+        webview* w = cast(webview*) arg;
+        
+            w.priv.should_exit = 1;
+    
     }
 }
 
@@ -171,52 +182,62 @@ extern (C) void JSStringGetUTF8CString(JSStringRef, char*, size_t);
 
 extern (C) void JSStringRelease(JSStringRef);
 
-void external_message_received_cb(WebKitUserContentManager* m, WebKitJavascriptResult* r, void* arg)
+
+version (linux)
 {
+    void external_message_received_cb(WebKitUserContentManager* m, WebKitJavascriptResult* r, void* arg)
+    {
 
-    writeln("external_message_received_cb s");
-    Dhanos* w = cast(Dhanos*) arg;
-    
-    writeln(w.toString());
-    // if (w.callback == null)
-    // {
-    //     return;
-    // }
-    
-    JSGlobalContextRef context = webkit_javascript_result_get_global_context(r);
-    JSValueRef value = webkit_javascript_result_get_value(r);
-    JSStringRef js = JSValueToStringCopy(context, value, null);
-    size_t n = JSStringGetMaximumUTF8CStringSize(js);
-    // char* s = g_new(char, n);
-    char[] s = new char[n];
-    JSStringGetUTF8CString(js, cast(char*) s, n);
+        writeln("external_message_received_cb s");
+        Dhanos* w = cast(Dhanos*) arg;
+        
+        writeln(w.toString());
+        // if (w.callback == null)
+        // {
+        //     return;
+        // }
+        
+        JSGlobalContextRef context = webkit_javascript_result_get_global_context(r);
+        JSValueRef value = webkit_javascript_result_get_value(r);
+        JSStringRef js = JSValueToStringCopy(context, value, null);
+        size_t n = JSStringGetMaximumUTF8CStringSize(js);
+        // char* s = g_new(char, n);
+        char[] s = new char[n];
+        JSStringGetUTF8CString(js, cast(char*) s, n);
 
-    writeln("external_message_received_cb external_invoke_cb s");
-    const char* ss = cast(const char*)s;
-    immutable(string) js_command = cast(immutable)fromStringz(ss);
-    writeln("external_message_received_cb external_invoke_cb ss");
-    writeln(w);
-    // writeln(w.external_invoke_cb);
-    // writeln(w.dhanos_ptr);
-    writeln(js_command);
-    w.callback(js_command);
-    writeln("external_message_received_cb external_invoke_cb e");
+        writeln("external_message_received_cb external_invoke_cb s");
+        const char* ss = cast(const char*)s;
+        immutable(string) js_command = cast(immutable)fromStringz(ss);
+        writeln("external_message_received_cb external_invoke_cb ss");
+        writeln(w);
+        // writeln(w.external_invoke_cb);
+        // writeln(w.dhanos_ptr);
+        writeln(js_command);
+        w.callback(js_command);
+        writeln("external_message_received_cb external_invoke_cb e");
 
-    JSStringRelease(js);
-    writeln("external_message_received_cb e");
-    // g_free(s);
+        JSStringRelease(js);
+        writeln("external_message_received_cb e");
+        // g_free(s);
+    }
+
 }
 
-void webview_load_changed_cb(WebKitWebView* wwv, WebKitLoadEvent event, void* arg)
-{
-    writeln("webview_load_changed_cb");
-    webview* w = cast(webview*) arg;
 
-    if (event == WebKitLoadEvent.WEBKIT_LOAD_FINISHED)
+version (linux)
+{
+    void webview_load_changed_cb(WebKitWebView* wwv, WebKitLoadEvent event, void* arg)
     {
-        w.priv.ready = 1;
+        writeln("webview_load_changed_cb");
+        webview* w = cast(webview*) arg;
+
+        if (event == WebKitLoadEvent.WEBKIT_LOAD_FINISHED)
+        {
+            w.priv.ready = 1;
+        }
     }
 }
+
 
 void raw_callback(Dhanos d, immutable(string) js_command)
 
@@ -264,73 +285,7 @@ class Dhanos
     bool resizable;
     webview data;
 
-    void setFullscreen(bool fullscreen)
-    {
-        version (linux)
-        {
-            if (fullscreen)
-            {
-                gtk_window_fullscreen(cast(GtkWindow*) data.priv.window);
-            }
-            else
-            {
-                gtk_window_unfullscreen(cast(GtkWindow*) data.priv.window);
-            }
-        }
-        version (Windows)
-        {
-            if (data.priv.is_fullscreen == !!fullscreen)
-            {
-                return;
-            }
-            if (data.priv.is_fullscreen == 0)
-            {
-                data.priv.saved_style = GetWindowLong(data.priv.hwnd, GWL_STYLE);
-                data.priv.saved_ex_style = GetWindowLong(data.priv.hwnd, GWL_EXSTYLE);
-                GetWindowRect(data.priv.hwnd, &data.priv.saved_rect);
-            }
-            data.priv.is_fullscreen = !!fullscreen;
-            if (fullscreen)
-            {
-                MONITORINFO monitor_info;
-                SetWindowLong(data.priv.hwnd, GWL_STYLE,
-                        data.priv.saved_style & ~(WS_CAPTION | WS_THICKFRAME));
-                SetWindowLong(data.priv.hwnd, GWL_EXSTYLE, data.priv.saved_ex_style & ~(
-                        WS_EX_DLGMODALFRAME | WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE | WS_EX_STATICEDGE));
-                monitor_info.cbSize = sizeof(monitor_info);
-                GetMonitorInfo(MonitorFromWindow(data.priv.hwnd,
-                        MONITOR_DEFAULTTONEAREST), &monitor_info);
-                RECT r;
-                r.left = monitor_info.rcMonitor.left;
-                r.top = monitor_info.rcMonitor.top;
-                r.right = monitor_info.rcMonitor.right;
-                r.bottom = monitor_info.rcMonitor.bottom;
-                SetWindowPos(data.priv.hwnd, NULL, r.left, r.top,
-                        r.right - r.left, r.bottom - r.top,
-                        SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
-            }
-            else
-            {
-                SetWindowLong(data.priv.hwnd, GWL_STYLE, data.priv.saved_style);
-                SetWindowLong(data.priv.hwnd, GWL_EXSTYLE, data.priv.saved_ex_style);
-                SetWindowPos(data.priv.hwnd, NULL, data.priv.saved_rect.left,
-                        data.priv.saved_rect.top, data.priv.saved_rect.right - data.priv.saved_rect.left,
-                        data.priv.saved_rect.bottom - data.priv.saved_rect.top,
-                        SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
-            }
-        }
-        version (OSX)
-        {
-            ulong windowStyleMask = cast(ulong) objc_msgSend(data.priv.window,
-                    sel_registerName("styleMask"));
-            immutable(int) b = (((windowStyleMask & NSWindowStyleMaskFullScreen) == NSWindowStyleMaskFullScreen)
-                    ? 1 : 0);
-            if (b != fullscreen)
-            {
-                objc_msgSend(data.priv.window, sel_registerName("toggleFullScreen:"), NULL);
-            }
-        }
-    }
+    void setFullscreen(bool fullscreen);
 
     void mainLoop()
     {
@@ -441,6 +396,10 @@ public:
 
     int webview_init(webview* w)
     {
+        version (linux)
+        {
+
+       
         if (gtk_init_check(null, null) == false)
         {
             return -1;
@@ -508,6 +467,7 @@ public:
                 cast(void*)&webview_destroy_cb, cast(void*) w, null,
                 GConnectFlags.G_CONNECT_AFTER);
         return 0;
+         }
     }
 
     this(immutable(string) title, immutable(string) url, int width, int height, bool resizable)

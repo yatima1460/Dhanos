@@ -6,17 +6,13 @@
     "sourceFiles": [
         "Minimal.d"
     ],
-    
-  
-   
     "importPaths": [
-        "../../Source"
+        "../../Dhanos"
       ],
-    "dependencies": {
-        "dhanos": {
-            "path": "../../"
-        }
-    },
+   
+    "lflags-windows": [
+		"/SUBSYSTEM:console","..\\..\\Build\\webview.lib","..\\..\\Build\\dhanos.lib","User32.lib","ole32.lib","gdi32.lib"
+	],
     "targetPath": "Build/Dhanos.Example.Minimal-$PLATFORM-$ARCH-$BUILD_TYPE",
     "toolchainRequirements": {
         "dmd": ">=2.086.0",
