@@ -4,6 +4,8 @@ import DhanosInterface : DhanosInterface;
 
 DhanosInterface getNewPlatformInstance(immutable(string) title, immutable(string) url, int width, int height, bool resizable)
 {
+    import std.stdio;
+    writeln("owo");
     DhanosInterface d;
     version(Windows)
     {
@@ -18,7 +20,8 @@ DhanosInterface getNewPlatformInstance(immutable(string) title, immutable(string
     return d;
 }
 
+
 int main()
 {
-    return 1;
+    return 999;
 }
