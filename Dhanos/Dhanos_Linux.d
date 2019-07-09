@@ -1,4 +1,4 @@
-module Dhanos;
+module Dhanos_Linux;
 
 import std.string : toStringz;
 
@@ -116,7 +116,7 @@ version (linux)
 
 //extern (C) alias webview_external_invoke_cb_t = int function(webview, const char*);
 
-alias webview_external_invoke_cb_t = void function(Dhanos w, immutable(string) arg);
+alias webview_external_invoke_cb_t = void function(Dhanos_Linux w, immutable(string) arg);
 
 struct webview
 {
@@ -132,7 +132,7 @@ struct webview
     
 
     void* userdata;
-    Dhanos dhanos_ptr;
+    Dhanos_Linux dhanos_ptr;
 };
 
 //extern (C) int webview(const char* title, const char* url, int width, int height, int resizable);
@@ -189,7 +189,7 @@ version (linux)
     {
 
         writeln("external_message_received_cb s");
-        Dhanos* w = cast(Dhanos*) arg;
+        Dhanos_Linux* w = cast(Dhanos_Linux*) arg;
         
         writeln(w.toString());
         // if (w.callback == null)
@@ -239,7 +239,7 @@ version (linux)
 }
 
 
-void raw_callback(Dhanos d, immutable(string) js_command)
+void raw_callback(Dhanos_Linux d, immutable(string) js_command)
 
 {
     writeln("raw_callback");
@@ -253,14 +253,23 @@ void raw_callback(Dhanos d, immutable(string) js_command)
 
    
     d.callback(js_command);
+
+
 }
 
-class Dhanos
+import DhanosInterface : DhanosInterface;
+
+class Dhanos_Linux : DhanosInterface
 {
     // int ready;
     // int should_exit;
     // GAsyncQueue* queue;
     // GtkWidget* window;
+
+    this()
+    {
+
+    }
 
     static immutable(string) DEFAULT_URL = "data:text/"
         ~ "html,%3C%21DOCTYPE%20html%3E%0A%3Chtml%20lang=%22en%22%3E%0A%3Chead%3E%"
@@ -285,7 +294,7 @@ class Dhanos
     bool resizable;
     webview data;
 
-    void setFullscreen(bool fullscreen);
+    //void setFullscreen(bool fullscreen);
 
     void mainLoop()
     {
@@ -470,7 +479,7 @@ public:
          }
     }
 
-    this(immutable(string) title, immutable(string) url, int width, int height, bool resizable)
+    void init(immutable(string) title, immutable(string) url, int width, int height, bool resizable)
     {
         this.title = title;
         this.url = url;

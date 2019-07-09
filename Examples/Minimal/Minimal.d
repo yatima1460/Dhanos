@@ -7,7 +7,7 @@ import Dhanos : getNewPlatformInstance;
 int main(string[] args)
 {
     immutable(string) dhanos_project_path = dirName(dirName(
-            dirName(dirName(dirName(absolutePath(buildNormalizedPath(args[0])))))));
+            dirName(dirName(absolutePath(buildNormalizedPath(args[0]))))));
 
     
     DhanosInterface d = getNewPlatformInstance("Minimal Dhanos example",
