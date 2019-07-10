@@ -27,7 +27,7 @@ int main(string[] args)
    
     //d.setBorder(false);
     auto f = &callback;
-    //d.setJSCallback(f);
+    d.setJSCallback(f);
     d.mainLoop();
     return 0;
 }
