@@ -147,16 +147,9 @@ extern (C) void webview_dispatch(webview* w, webview_dispatch_fn fn, void* arg);
 import std.stdio : writeln;
 import std.string : fromStringz;
 
-version (linux)
-{
-    void webview_destroy_cb(GtkWidget* widget, void* arg)
-    {
-        webview* w = cast(webview*) arg;
-        
-            w.priv.should_exit = 1;
-    
-    }
-}
+
+  
+
 
 extern (C) struct WebKitJavascriptResult;
 enum WebKitLoadEvent
@@ -183,49 +176,55 @@ extern (C) void JSStringGetUTF8CString(JSStringRef, char*, size_t);
 extern (C) void JSStringRelease(JSStringRef);
 
 
-version (linux)
-{
+
     void external_message_received_cb(WebKitUserContentManager* m, WebKitJavascriptResult* r, void* arg)
     {
-
-        writeln("external_message_received_cb s");
-        Dhanos_Linux* w = cast(Dhanos_Linux*) arg;
+       
+        writeln("external_message_received_cb");
         
-        writeln(w.toString());
-        // if (w.callback == null)
-        // {
-        //     return;
-        // }
+        writeln(arg);
+        writeln(cast(Dhanos_Linux*)arg);
+
+        // Dhanos_Linux w = *cast(Dhanos_Linux*) arg;
+        // writeln("external_message_received_cb 2");
         
-        JSGlobalContextRef context = webkit_javascript_result_get_global_context(r);
-        JSValueRef value = webkit_javascript_result_get_value(r);
-        JSStringRef js = JSValueToStringCopy(context, value, null);
-        size_t n = JSStringGetMaximumUTF8CStringSize(js);
-        // char* s = g_new(char, n);
-        char[] s = new char[n];
-        JSStringGetUTF8CString(js, cast(char*) s, n);
+        // writeln(w.toString());
+        // writeln("external_message_received_cb 3");
+       
+        
+        // JSGlobalContextRef context = webkit_javascript_result_get_global_context(r);
+        // writeln("external_message_received_cb 4");
+        // JSValueRef value = webkit_javascript_result_get_value(r);
+        // writeln("external_message_received_cb 5");
+        // JSStringRef js = JSValueToStringCopy(context, value, null);
+        // writeln("external_message_received_cb 6");
+        // size_t n = JSStringGetMaximumUTF8CStringSize(js);
+        // writeln("external_message_received_cb 7");
+        // // char* s = g_new(char, n);
+        // char[] s = new char[n];
+        // writeln("external_message_received_cb 8");
+        // JSStringGetUTF8CString(js, cast(char*) s, n);
 
-        writeln("external_message_received_cb external_invoke_cb s");
-        const char* ss = cast(const char*)s;
-        immutable(string) js_command = cast(immutable)fromStringz(ss);
-        writeln("external_message_received_cb external_invoke_cb ss");
-        writeln(w);
-        // writeln(w.external_invoke_cb);
-        // writeln(w.dhanos_ptr);
-        writeln(js_command);
-        w.callback(js_command);
-        writeln("external_message_received_cb external_invoke_cb e");
+        // writeln("external_message_received_cb external_invoke_cb s");
+        // const char* ss = cast(const char*)s;
+        // immutable(string) js_command = cast(immutable)fromStringz(ss);
+        // writeln("external_message_received_cb external_invoke_cb ss");
+        // writeln(w);
+        // // writeln(w.external_invoke_cb);
+        // // writeln(w.dhanos_ptr);
+        // writeln(js_command);
+        // w.callback(js_command);
+        // writeln("external_message_received_cb external_invoke_cb e");
 
-        JSStringRelease(js);
-        writeln("external_message_received_cb e");
-        // g_free(s);
+        // JSStringRelease(js);
+        // writeln("external_message_received_cb e");
+        // // g_free(s);
     }
 
-}
 
 
-version (linux)
-{
+
+
     void webview_load_changed_cb(WebKitWebView* wwv, WebKitLoadEvent event, void* arg)
     {
         writeln("webview_load_changed_cb");
@@ -236,7 +235,15 @@ version (linux)
             w.priv.ready = 1;
         }
     }
-}
+
+  void webview_destroy_cb(GtkWidget* widget, void* arg)
+    {
+        writeln("webview_destroy_cb");
+        webview* w = cast(webview*) arg;
+        
+            w.priv.should_exit = 1;
+    
+    }
 
 
 void raw_callback(Dhanos_Linux d, immutable(string) js_command)
@@ -436,14 +443,23 @@ public:
         w.priv.scroller = gtk_scrolled_window_new(null, null);
         gtk_container_add(cast(GtkContainer*)(w.priv.window), w.priv.scroller);
 
-        WebKitUserContentManager* m = webkit_user_content_manager_new();
-        webkit_user_content_manager_register_script_message_handler(m, "external");
+        WebKitUserContentManager* webkitUserContentManager = webkit_user_content_manager_new();
+        webkit_user_content_manager_register_script_message_handler(webkitUserContentManager, "external");
         
-        g_signal_connect_data(cast(void*) m, cast(const char*) toStringz("script-message-received::external"),
-                cast(void*)&external_message_received_cb, cast(void*)this, null,  GConnectFlags.G_CONNECT_AFTER);
+        writeln(this);
+        writeln(cast(void*)this);
+
+        g_signal_connect_data(
+            cast(void*) webkitUserContentManager, 
+            cast(const char*) toStringz("script-message-received::external"),
+            cast(void*)&external_message_received_cb, 
+            null, 
+            null,  
+            GConnectFlags.G_CONNECT_AFTER
+        );
                
 
-        w.priv.webview = webkit_web_view_new_with_user_content_manager(m);
+        w.priv.webview = webkit_web_view_new_with_user_content_manager(webkitUserContentManager);
         webkit_web_view_load_uri(cast(WebKitWebView*)(w.priv.webview),
                 toStringz(checkURL(fromStringz(w.url).idup)));
         g_signal_connect_data(cast(void*) w.priv.webview,

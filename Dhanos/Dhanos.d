@@ -2,42 +2,41 @@ module Dhanos;
 
 import DhanosInterface : DhanosInterface;
 
-DhanosInterface getNewPlatformInstance(immutable(string) title, immutable(string) url, int width, int height, bool resizable)
+DhanosInterface getNewPlatformInstance(immutable(string) title,
+        immutable(string) url, int width, int height, bool resizable)
 {
     import std.stdio;
-    writeln("owo");
+
     DhanosInterface d = null;
-    version(Windows)
+    version (Windows)
     {
-        writeln("w");
         import Dhanos_Windows : Dhanos_Windows;
-        d = cast(DhanosInterface)new Dhanos_Windows();
+        d = cast(DhanosInterface) new Dhanos_Windows();
     }
-    version(linux)
+    version (linux)
     {
-        writeln("l");
         import Dhanos_Linux : Dhanos_Linux;
         auto d_l = new Dhanos_Linux();
-        writeln(d_l);
-        d = cast(DhanosInterface)d_l;
-        writeln(d);
+        d = cast(DhanosInterface) d_l;
     }
-    version(OSX)
+    version (OSX)
     {
-        writeln("o");
         import Dhanos_OSX : Dhanos_OSX;
-        d = cast(DhanosInterface)new Dhanos_OSX();
+        d = cast(DhanosInterface) new Dhanos_OSX();
     }
     if (d is null)
     {
         throw new Exception("Your platform is still not supported!");
     }
-    d.init(title,url,width,height,resizable);
+    d.init(title, url, width, height, resizable);
     return d;
 }
 
-
-int main()
+version (Windows)
 {
-    return 999;
+    // Windows requires a main in a library????
+    int main()
+    {
+        return 1;
+    }
 }
