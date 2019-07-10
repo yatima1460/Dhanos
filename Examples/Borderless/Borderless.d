@@ -9,7 +9,8 @@ import std.stdio : writeln;
 
 void callback(immutable(string) value)
 {
-    writeln("a");
+    writeln("borderless js callback");
+    writeln("value "~value);
     
 }
 

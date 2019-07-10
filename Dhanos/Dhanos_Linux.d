@@ -175,50 +175,56 @@ extern (C) void JSStringGetUTF8CString(JSStringRef, char*, size_t);
 
 extern (C) void JSStringRelease(JSStringRef);
 
+alias gpointer=void*;
 
 
-    void external_message_received_cb(WebKitUserContentManager* m, WebKitJavascriptResult* r, void* arg)
+
+    extern(C) void external_message_received_cb(WebKitUserContentManager *manager,
+               WebKitJavascriptResult   *js_result,
+               gpointer                  user_data)
     {
        
         writeln("external_message_received_cb");
         
-        writeln(arg);
-        writeln(cast(Dhanos_Linux*)arg);
+        writeln(user_data);
+        writeln(cast(Dhanos_Linux*)user_data);
 
-        // Dhanos_Linux w = *cast(Dhanos_Linux*) arg;
-        // writeln("external_message_received_cb 2");
-        
-        // writeln(w.toString());
-        // writeln("external_message_received_cb 3");
+        Dhanos_Linux w = cast(Dhanos_Linux) user_data;
+       
+        writeln("external_message_received_cb 2");
+         writeln(w);
+              writeln("external_message_received_cb 2.5");
+        writeln(w.toString());
+        writeln("external_message_received_cb 3");
        
         
-        // JSGlobalContextRef context = webkit_javascript_result_get_global_context(r);
-        // writeln("external_message_received_cb 4");
-        // JSValueRef value = webkit_javascript_result_get_value(r);
-        // writeln("external_message_received_cb 5");
-        // JSStringRef js = JSValueToStringCopy(context, value, null);
-        // writeln("external_message_received_cb 6");
-        // size_t n = JSStringGetMaximumUTF8CStringSize(js);
-        // writeln("external_message_received_cb 7");
-        // // char* s = g_new(char, n);
-        // char[] s = new char[n];
-        // writeln("external_message_received_cb 8");
-        // JSStringGetUTF8CString(js, cast(char*) s, n);
+        JSGlobalContextRef context = webkit_javascript_result_get_global_context(js_result);
+        writeln("external_message_received_cb 4");
+        JSValueRef value = webkit_javascript_result_get_value(js_result);
+        writeln("external_message_received_cb 5");
+        JSStringRef js = JSValueToStringCopy(context, value, null);
+        writeln("external_message_received_cb 6");
+        size_t n = JSStringGetMaximumUTF8CStringSize(js);
+        writeln("external_message_received_cb 7");
+        // char* s = g_new(char, n);
+        char[] s = new char[n];
+        writeln("external_message_received_cb 8");
+        JSStringGetUTF8CString(js, cast(char*) s, n);
 
-        // writeln("external_message_received_cb external_invoke_cb s");
-        // const char* ss = cast(const char*)s;
-        // immutable(string) js_command = cast(immutable)fromStringz(ss);
-        // writeln("external_message_received_cb external_invoke_cb ss");
-        // writeln(w);
-        // // writeln(w.external_invoke_cb);
-        // // writeln(w.dhanos_ptr);
-        // writeln(js_command);
-        // w.callback(js_command);
-        // writeln("external_message_received_cb external_invoke_cb e");
+        writeln("external_message_received_cb external_invoke_cb s");
+        const char* ss = cast(const char*)s;
+        immutable(string) js_command = cast(immutable)fromStringz(ss);
+        writeln("external_message_received_cb external_invoke_cb ss");
+        writeln(w);
+        // writeln(w.external_invoke_cb);
+        // writeln(w.dhanos_ptr);
+        writeln(js_command);
+        w.callback(js_command);
+        writeln("external_message_received_cb external_invoke_cb e");
 
-        // JSStringRelease(js);
-        // writeln("external_message_received_cb e");
-        // // g_free(s);
+        JSStringRelease(js);
+        writeln("external_message_received_cb e");
+        // g_free(s);
     }
 
 
@@ -410,7 +416,7 @@ public:
 
     // }
 
-    int webview_init(webview* w)
+    int webview_init(webview* data)
     {
         version (linux)
         {
@@ -422,26 +428,27 @@ public:
         }
         
 
-        w.priv.ready = 0;
-        w.priv.should_exit = 0;
-        w.priv.queue = g_async_queue_new();
-        w.priv.window = cast(GtkWidget*) gtk_window_new(GtkWindowType.GTK_WINDOW_TOPLEVEL);
-        gtk_window_set_title(cast(GtkWindow*) w.priv.window, w.title);
+        data.priv.ready = 0;
+        data.priv.should_exit = 0;
+        data.priv.queue = g_async_queue_new();
+        data.priv.window = cast(GtkWidget*) gtk_window_new(GtkWindowType.GTK_WINDOW_TOPLEVEL);
+        gtk_window_set_title(cast(GtkWindow*) data.priv.window, data.title);
 
-        if (w.resizable)
+        if (data.resizable)
         {
-            gtk_window_set_default_size(cast(GtkWindow*)(w.priv.window), w.width, w.height);
+            gtk_window_set_default_size(cast(GtkWindow*)(data.priv.window), data.width, data.height);
         }
         else
         {
-            gtk_widget_set_size_request(w.priv.window, w.width, w.height);
+            gtk_widget_set_size_request(data.priv.window, data.width, data.height);
         }
-        gtk_window_set_resizable(cast(GtkWindow*)(w.priv.window), !!w.resizable);
-        gtk_window_set_position(cast(GtkWindow*)(w.priv.window),
-                GtkWindowPosition.GTK_WIN_POS_CENTER);
 
-        w.priv.scroller = gtk_scrolled_window_new(null, null);
-        gtk_container_add(cast(GtkContainer*)(w.priv.window), w.priv.scroller);
+        gtk_window_set_resizable(cast(GtkWindow*)(data.priv.window), cast(bool)data.resizable);
+        gtk_window_set_position(cast(GtkWindow*)(data.priv.window), GtkWindowPosition.GTK_WIN_POS_CENTER);
+
+        // Add scrollbar if needed
+        data.priv.scroller = gtk_scrolled_window_new(null, null);
+        gtk_container_add(cast(GtkContainer*)(data.priv.window), data.priv.scroller);
 
         WebKitUserContentManager* webkitUserContentManager = webkit_user_content_manager_new();
         webkit_user_content_manager_register_script_message_handler(webkitUserContentManager, "external");
@@ -453,43 +460,43 @@ public:
             cast(void*) webkitUserContentManager, 
             cast(const char*) toStringz("script-message-received::external"),
             cast(void*)&external_message_received_cb, 
-            null, 
+            cast(void*)this, 
             null,  
             GConnectFlags.G_CONNECT_AFTER
         );
                
 
-        w.priv.webview = webkit_web_view_new_with_user_content_manager(webkitUserContentManager);
-        webkit_web_view_load_uri(cast(WebKitWebView*)(w.priv.webview),
-                toStringz(checkURL(fromStringz(w.url).idup)));
-        g_signal_connect_data(cast(void*) w.priv.webview,
+        data.priv.webview = webkit_web_view_new_with_user_content_manager(webkitUserContentManager);
+        webkit_web_view_load_uri(cast(WebKitWebView*)(data.priv.webview),
+                toStringz(checkURL(fromStringz(data.url).idup)));
+        g_signal_connect_data(cast(void*) data.priv.webview,
                 cast(const char*) toStringz("load-changed"), &webview_load_changed_cb,
-                cast(void*) w, null, GConnectFlags.G_CONNECT_AFTER);
-        gtk_container_add(cast(GtkContainer*)(w.priv.scroller), w.priv.webview);
+                cast(void*) data, null, GConnectFlags.G_CONNECT_AFTER);
+        gtk_container_add(cast(GtkContainer*)(data.priv.scroller), data.priv.webview);
 
         debug
         {
             WebKitSettings* settings = webkit_web_view_get_settings(
-                    cast(WebKitWebView*)(w.priv.webview));
+                    cast(WebKitWebView*)(data.priv.webview));
             webkit_settings_set_enable_write_console_messages_to_stdout(settings, true);
             webkit_settings_set_enable_developer_extras(settings, true);
         }
         else
         {
-            g_signal_connect_data(w.priv.webview, "context-menu",
-                    G_CALLBACK(webview_context_menu_cb), w, null,
+            g_signal_connect_data(data.priv.webview, "context-menu",
+                    G_CALLBACK(webview_context_menu_cb), data, null,
                 GConnectFlags.G_CONNECT_AFTER);
         }
 
-        gtk_widget_show_all(w.priv.window);
+        gtk_widget_show_all(data.priv.window);
 
-        webkit_web_view_run_javascript(cast(WebKitWebView*)(w.priv.webview),
+        webkit_web_view_run_javascript(cast(WebKitWebView*)(data.priv.webview),
                 "window.external={invoke:function(x){" ~ "window.webkit.messageHandlers.external.postMessage(x);}}",
                 null, null, null);
 
         auto d = toStringz("destroy");
-        g_signal_connect_data(w.priv.window, cast(char*) d,
-                cast(void*)&webview_destroy_cb, cast(void*) w, null,
+        g_signal_connect_data(data.priv.window, cast(char*) d,
+                cast(void*)&webview_destroy_cb, cast(void*) data, null,
                 GConnectFlags.G_CONNECT_AFTER);
         return 0;
          }
