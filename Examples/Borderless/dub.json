@@ -7,14 +7,15 @@
         "Borderless.d"
     ],
     "importPaths": [
-        "../../Source"
+        "../../Dhanos"
     ],
     "dependencies": {
         "dhanos": {
             "path": "../../"
         }
     },
-    "targetPath": "Build/Dhanos.Example.Borderless-$PLATFORM-$ARCH-$BUILD_TYPE",
+    "lflags-windows": ["/SUBSYSTEM:CONSOLE"],
+    "targetPath": "Build",
     "toolchainRequirements": {
         "dmd": ">=2.086.0",
         "gdc": "no",
