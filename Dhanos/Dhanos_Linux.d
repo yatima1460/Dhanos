@@ -79,6 +79,12 @@ import std.string : toStringz;
             WebKitSettings* settings, bool enabled);
     extern (C) void webkit_settings_set_enable_developer_extras(
             WebKitSettings* settings, bool enabled);
+
+
+   extern (C) void   webkit_settings_set_allow_file_access_from_file_urls ( WebKitSettings*,bool);
+          extern (C) void   webkit_settings_set_allow_universal_access_from_file_urls ( WebKitSettings*,bool);
+
+
     extern (C) struct GCancellable;
     extern (C) struct GAsyncResult;
     extern (C) struct GObject;
@@ -653,6 +659,7 @@ public:
             WebKitSettings* settings = webkit_web_view_get_settings(
                     cast(WebKitWebView*)(data.priv.webview));
             webkit_settings_set_enable_write_console_messages_to_stdout(settings, true);
+          
             webkit_settings_set_enable_developer_extras(settings, true);
         }
         else
@@ -661,6 +668,9 @@ public:
            //         G_CALLBACK(webview_context_menu_cb), data, null,
            //     GConnectFlags.G_CONNECT_AFTER);
         }
+
+          webkit_settings_set_allow_file_access_from_file_urls (settings,true);
+            webkit_settings_set_allow_universal_access_from_file_urls (settings,true);
 
        
        
