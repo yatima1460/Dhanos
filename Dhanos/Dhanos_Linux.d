@@ -91,8 +91,44 @@ import std.string : toStringz;
             WebKitUserContentManager* user_content_manager);
     extern (C) void webkit_web_view_load_uri(WebKitWebView* web_view, const char* uri);
 
-// extern (C) enum GtkWindowType;
 
+          
+     
+
+ enum GdkGravity {
+            GDK_GRAVITY_NORTH_WEST,
+
+ 
+GDK_GRAVITY_NORTH,
+
+ 
+GDK_GRAVITY_NORTH_EAST,
+
+ 
+GDK_GRAVITY_WEST,
+ 
+GDK_GRAVITY_CENTER,
+
+ 
+GDK_GRAVITY_EAST,
+
+ 
+GDK_GRAVITY_SOUTH_WEST,
+
+ 
+GDK_GRAVITY_SOUTH,
+
+ 
+GDK_GRAVITY_SOUTH_EAST,
+ 
+GDK_GRAVITY_STATIC
+
+
+        };
+
+  
+
+extern (C) void gtk_window_set_gravity(GtkWindow*, GdkGravity);
 
     struct webview_priv
     {
@@ -411,17 +447,28 @@ class Dhanos_Linux : DhanosInterface
         );
     }
 
+    void runJavascript(immutable(string) js)
+    {
+        webkit_web_view_run_javascript(
+            cast(WebKitWebView*)(data.priv.webview),
+            toStringz(js),
+            null, 
+            null, 
+            null
+        );
+    }
+
     void mainLoop()
     {
         import std.stdio : writeln;
 
-        version (linux)
-        {
+      
             while (!data.priv.should_exit)
             {
+                    
                 gtk_main_iteration_do(true);
             }
-        }
+        
     }
 
  
@@ -542,7 +589,14 @@ public:
         data.priv.should_exit = 0;
         data.priv.queue = g_async_queue_new();
         data.priv.window = cast(GtkWidget*) gtk_window_new(GtkWindowType.GTK_WINDOW_TOPLEVEL);
+
+    
+
+   
+
+        
         gtk_window_set_title(cast(GtkWindow*) data.priv.window, data.title);
+     
 
         if (data.resizable)
         {
@@ -552,10 +606,15 @@ public:
         {
             gtk_widget_set_size_request(data.priv.window, data.width, data.height);
         }
+        gtk_window_set_position(cast(GtkWindow*)data.priv.window, GtkWindowPosition.GTK_WIN_POS_CENTER_ALWAYS);
+
+
+       
+
 
         gtk_window_set_resizable(cast(GtkWindow*)(data.priv.window), cast(bool)data.resizable);
-        gtk_window_set_position(cast(GtkWindow*)(data.priv.window), GtkWindowPosition.GTK_WIN_POS_CENTER);
 
+         
         // Add scrollbar if needed
         data.priv.scroller = gtk_scrolled_window_new(null, null);
         gtk_container_add(cast(GtkContainer*)(data.priv.window), data.priv.scroller);
@@ -580,6 +639,8 @@ public:
                
 
         data.priv.webview = webkit_web_view_new_with_user_content_manager(webkitUserContentManager);
+
+        writeln("loading... "~fromStringz(data.url));
         webkit_web_view_load_uri(cast(WebKitWebView*)(data.priv.webview),
                 toStringz(checkURL(fromStringz(data.url).idup)));
         g_signal_connect_data(cast(void*) data.priv.webview,
@@ -596,29 +657,53 @@ public:
         }
         else
         {
-            g_signal_connect_data(data.priv.webview, "context-menu",
-                    G_CALLBACK(webview_context_menu_cb), data, null,
-                GConnectFlags.G_CONNECT_AFTER);
+           // g_signal_connect_data(data.priv.webview, "context-menu",
+           //         G_CALLBACK(webview_context_menu_cb), data, null,
+           //     GConnectFlags.G_CONNECT_AFTER);
         }
 
-        gtk_widget_show_all(data.priv.window);
+       
+       
 
-        webkit_web_view_run_javascript(cast(WebKitWebView*)(data.priv.webview),
-                "window.external={invoke:function(x){" ~ "window.webkit.messageHandlers.external.postMessage(x);}}",
-                null, null, null);
+
+         gtk_widget_show_all(data.priv.window);
+          //gtk_window_set_gravity (cast(GtkWindow*)data.priv.window, GdkGravity.GDK_GRAVITY_CENTER);
+       
+        // webkit_web_view_run_javascript(cast(WebKitWebView*)(data.priv.webview),
+        //         "window.external={invoke:function(x){" ~ "window.webkit.messageHandlers.external.postMessage(x);}}",
+        //         null, null, null);
 
         webkit_web_view_run_javascript(cast(WebKitWebView*)(data.priv.webview),
                 "dhanos = {}",
                 null, null, null);
 
-        setCallback("loaded",&dhanos_page_loaded);
+        
 
         auto d = toStringz("destroy");
         g_signal_connect_data(data.priv.window, cast(char*) d,
                 cast(void*)&webview_destroy_cb, cast(void*) data, null,
                 GConnectFlags.G_CONNECT_AFTER);
+
+
+
+
+
         return 0;
+
+        
          }
+    }
+
+    Object o;
+
+    void setUserObject(Object o)
+    {
+        this.o = o;
+    }
+
+    Object getUserObject()
+    {
+        return o;
     }
 
     void init(immutable(string) title, immutable(string) url, int width, int height, bool resizable)

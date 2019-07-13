@@ -8,5 +8,8 @@ interface DhanosInterface
     void mainLoop();
     void close();
     void setBorder(bool);
+    void runJavascript(immutable(string) js);
+    void setUserObject(Object o);
+    Object getUserObject();
    void setTitle(immutable(string) title);
 }
