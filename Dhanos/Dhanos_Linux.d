@@ -243,9 +243,8 @@ alias gpointer=void*;
     {
         writeln("webview_destroy_cb");
         webview* w = cast(webview*) arg;
-        
-            w.priv.should_exit = 1;
-    
+        webview_terminate(w);
+        writeln("destroy DONE");
     }
 
 
@@ -425,6 +424,8 @@ class Dhanos_Linux : DhanosInterface
         }
     }
 
+ 
+
     void setTitle(immutable(string) title)
     {
         gtk_window_set_title(cast(GtkWindow*) data.priv.window, toStringz(title));
@@ -504,7 +505,6 @@ public:
        writeln("[Dhanos] pre-terminate");
         webview_terminate(&data);
         writeln("[Dhanos] post-terminate");
-        //webview_exit(&data);
     }
 
     void function(immutable(string)) getJSCallback()
@@ -652,14 +652,7 @@ public:
 
     void setBorder(bool visible)
     {
-        version (linux)
-        {
-            gtk_window_set_decorated(cast(GtkWindow*) data.priv.window, visible);
-        }
-        version (Windows)
-        {
-
-        }
+        gtk_window_set_decorated(cast(GtkWindow*) data.priv.window, visible);
     }
 
     // static int launch(immutable(string) title, immutable(string) url, int width,  int height, bool resizable)

@@ -7,5 +7,6 @@ interface DhanosInterface
     void setCallback(immutable(string) callbackName, void* cb);
     void mainLoop();
     void close();
+    void setBorder(bool);
    void setTitle(immutable(string) title);
 }
