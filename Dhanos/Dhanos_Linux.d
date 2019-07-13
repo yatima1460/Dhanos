@@ -597,8 +597,21 @@ public:
         data.priv.window = cast(GtkWidget*) gtk_window_new(GtkWindowType.GTK_WINDOW_TOPLEVEL);
 
     
+//   GdkScreen *screen = gtk_widget_get_screen(widget);
+//     GdkColormap *colormap = gdk_screen_get_rgba_colormap(screen);
 
-   
+//     if (!colormap)
+//     {
+//         printf("Your screen does not support alpha channels!\n");
+//         colormap = gdk_screen_get_rgb_colormap(screen);
+//         supports_alpha = FALSE;
+//     }
+//     else
+//     {
+//         printf("Your screen supports alpha channels!\n");
+//         supports_alpha = TRUE;
+//     }
+//         gtk_widget_set_colormap(   data.priv.window, colormap);
 
         
         gtk_window_set_title(cast(GtkWindow*) data.priv.window, data.title);
