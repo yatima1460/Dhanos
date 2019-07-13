@@ -137,7 +137,7 @@ struct webview
 // extern (C) int webview_init(webview* w);
 // extern (C) int webview_loop(webview* w, bool);
 extern (C) int webview_eval(webview* w, const char* js);
-extern (C) void webview_exit(webview* w);
+extern (C) void webview_terminate(webview* w);
 
 alias webview_dispatch_fn = void function(webview* w, void* arg);
 extern (C) void webview_dispatch(webview* w, webview_dispatch_fn fn, void* arg);
@@ -196,16 +196,16 @@ alias gpointer=void*;
        
         
         JSGlobalContextRef context = webkit_javascript_result_get_global_context(js_result);
-        writeln("external_message_received_cb 4");
+      
         JSValueRef value = webkit_javascript_result_get_value(js_result);
-        writeln("external_message_received_cb 5");
+      
         JSStringRef js = JSValueToStringCopy(context, value, null);
-        writeln("external_message_received_cb 6");
+     
         size_t n = JSStringGetMaximumUTF8CStringSize(js);
-        writeln("external_message_received_cb 7");
+       
         // char* s = g_new(char, n);
         char[] s = new char[n];
-        writeln("external_message_received_cb 8");
+     
         JSStringGetUTF8CString(js, cast(char*) s, n);
 
         writeln("external_message_received_cb external_invoke_cb s");
@@ -271,24 +271,71 @@ import DhanosInterface : DhanosInterface;
 
 
 
+// extern(C) void custom_callback(WebKitUserContentManager *manager, WebKitJavascriptResult   *js_result, gpointer user_data)
+// {
+//     auto custom_callback = cast(void function(immutable(string)))user_data;
+//     writeln("custom callback");
 
-extern(C) void custom_callback(WebKitUserContentManager *manager,
-               WebKitJavascriptResult   *js_result,
-               gpointer                  user_data)
-    {
-//Dhanos_Linux w = cast(Dhanos_Linux) user_data;
+//     JSGlobalContextRef context = webkit_javascript_result_get_global_context(js_result);
+//     JSValueRef value = webkit_javascript_result_get_value(js_result);
+//     JSStringRef js = JSValueToStringCopy(context, value, null);
+//     size_t n = JSStringGetMaximumUTF8CStringSize(js);
+//     char[] s = new char[n];
+//     JSStringGetUTF8CString(js, cast(char*) s, n);
+//     const char* ss = cast(const char*)s;
+//     immutable(string) js_value = cast(immutable)fromStringz(ss);
 
-auto a = cast(void function(immutable(string)))user_data;
-writeln("custom");
-a("test");
-    }
+//     writeln("custom value: "~js_value);
+//     custom_callback(js_value);
+//  }
 
-
-void loaded(immutable(string) value)
-{
-    writeln("loaded owo: "~value);
-    
+struct dhanos_callback_data{
+    DhanosInterface dhanos;
+    void* callback_func;
+    char* callback_name;
 }
+
+extern(C) void custom_callback(WebKitUserContentManager* manager, WebKitJavascriptResult* js_result, gpointer user_data)
+{
+
+
+    dhanos_callback_data* callback_data = cast(dhanos_callback_data*)user_data;
+
+    writeln("[Dhanos] custom_callback '"~fromStringz(callback_data.callback_name)~"' BEGIN");
+
+
+
+    // get input value from JS function
+    JSGlobalContextRef context = webkit_javascript_result_get_global_context(js_result);
+    JSValueRef value = webkit_javascript_result_get_value(js_result);
+    JSStringRef js = JSValueToStringCopy(context, value, null);
+    size_t n = JSStringGetMaximumUTF8CStringSize(js);
+    char[] s = new char[n];
+    JSStringGetUTF8CString(js, cast(char*) s, n);
+    const char* ss = cast(const char*)s;
+    immutable(string) js_value = cast(immutable)fromStringz(ss);
+
+    writeln("[Dhanos] custom_callback value: "~js_value);
+
+    auto cf = cast(void function(DhanosInterface,immutable(string)))callback_data.callback_func;
+
+
+  // DhanosInterface dd = *callback_data.dhanos;
+   writeln("[Dhanos] custom_callback call");
+   //writeln((&callback_data.dhanos.setTitle).ptr);
+
+    cf(callback_data.dhanos,js_value);
+    writeln("[Dhanos] custom_callback END");
+ }
+
+void dhanos_page_loaded(DhanosInterface di, immutable(string) value)
+{
+    writeln("[Dhanos] loaded webpage JS loaded");
+ 
+    di.setTitle("dhanos page loaded test name");
+}
+
+
 
 
 class Dhanos_Linux : DhanosInterface
@@ -302,6 +349,8 @@ class Dhanos_Linux : DhanosInterface
     {
         //setCallback("exit",)
     }
+
+
 
     static immutable(string) DEFAULT_URL = "data:text/"
         ~ "html,%3C%21DOCTYPE%20html%3E%0A%3Chtml%20lang=%22en%22%3E%0A%3Chead%3E%"
@@ -327,20 +376,30 @@ class Dhanos_Linux : DhanosInterface
     webview data;
 
     //void setFullscreen(bool fullscreen);
-    void function(immutable(string))[immutable(string)] callbacks;
+   void* [immutable(string)] callbacks;
 
-    void setCallback(immutable(string) callbackName,void function(immutable(string)) cb)
+    void setCallback(immutable(string) callbackName,void*  cb)
     {
         import std.conv : to;
-        writeln("setCallback "~callbackName~" => "~to!string(cb));
+        writeln("[Dhanos] setCallback "~callbackName~" => "~to!string(cb));
         callbacks[callbackName] = cb;
         auto callbackNameCString = toStringz(callbackName);
         webkit_user_content_manager_register_script_message_handler(webkitUserContentManager, callbackNameCString);
+
+        dhanos_callback_data* dcd = new dhanos_callback_data();
+        dcd.callback_func = cb;
+
+
+        dcd.dhanos = this;
+       
+        dcd.callback_name = cast(char*)callbackNameCString;
+
+
         g_signal_connect_data(
             cast(void*) webkitUserContentManager, 
             cast(const char*) toStringz("script-message-received::"~callbackName),
             cast(void*)&custom_callback, 
-            cast(void*)cb, 
+            cast(gpointer)dcd, 
             null,  
             GConnectFlags.G_CONNECT_AFTER
         );
@@ -368,10 +427,7 @@ class Dhanos_Linux : DhanosInterface
 
     void setTitle(immutable(string) title)
     {
-        version (linux)
-        {
-            gtk_window_set_title(cast(GtkWindow*) data.priv.window, toStringz(title));
-        }
+        gtk_window_set_title(cast(GtkWindow*) data.priv.window, toStringz(title));
     }
     // this(immutable(string) title, int width, int height, bool resizable)
     // {
@@ -441,6 +497,15 @@ private:
     WebKitUserContentManager* webkitUserContentManager;
 
 public:
+
+
+    void close()
+    {
+       writeln("[Dhanos] pre-terminate");
+        webview_terminate(&data);
+        writeln("[Dhanos] post-terminate");
+        //webview_exit(&data);
+    }
 
     void function(immutable(string)) getJSCallback()
     {
@@ -546,7 +611,7 @@ public:
                 "dhanos = {}",
                 null, null, null);
 
-         setCallback("loaded",&loaded);
+        setCallback("loaded",&dhanos_page_loaded);
 
         auto d = toStringz("destroy");
         g_signal_connect_data(data.priv.window, cast(char*) d,
