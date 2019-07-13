@@ -2,8 +2,7 @@ module Dhanos_Linux;
 
 import std.string : toStringz;
 
-version (linux)
-{
+
 
     // GLIB GAsyncQueue
     extern (C) struct GAsyncQueue;
@@ -91,20 +90,19 @@ version (linux)
     extern (C) GtkWidget* webkit_web_view_new_with_user_content_manager(
             WebKitUserContentManager* user_content_manager);
     extern (C) void webkit_web_view_load_uri(WebKitWebView* web_view, const char* uri);
-}
+
 // extern (C) enum GtkWindowType;
 
 
     struct webview_priv
     {
-        version (linux)
-        {
+       
         GtkWidget* window;
         GtkWidget* scroller;
         GtkWidget* webview;
         GtkWidget* inspector_window;
         GAsyncQueue* queue;
-        }
+        
         int ready;
         int js_busy;
         int should_exit;
@@ -176,7 +174,6 @@ extern (C) void JSStringGetUTF8CString(JSStringRef, char*, size_t);
 extern (C) void JSStringRelease(JSStringRef);
 
 alias gpointer=void*;
-
 
 
     extern(C) void external_message_received_cb(WebKitUserContentManager *manager,
@@ -272,6 +269,28 @@ void raw_callback(Dhanos_Linux d, immutable(string) js_command)
 
 import DhanosInterface : DhanosInterface;
 
+
+
+
+extern(C) void custom_callback(WebKitUserContentManager *manager,
+               WebKitJavascriptResult   *js_result,
+               gpointer                  user_data)
+    {
+//Dhanos_Linux w = cast(Dhanos_Linux) user_data;
+
+auto a = cast(void function(immutable(string)))user_data;
+writeln("custom");
+a("test");
+    }
+
+
+void loaded(immutable(string) value)
+{
+    writeln("loaded owo: "~value);
+    
+}
+
+
 class Dhanos_Linux : DhanosInterface
 {
     // int ready;
@@ -281,7 +300,7 @@ class Dhanos_Linux : DhanosInterface
 
     this()
     {
-
+        //setCallback("exit",)
     }
 
     static immutable(string) DEFAULT_URL = "data:text/"
@@ -308,6 +327,31 @@ class Dhanos_Linux : DhanosInterface
     webview data;
 
     //void setFullscreen(bool fullscreen);
+    void function(immutable(string))[immutable(string)] callbacks;
+
+    void setCallback(immutable(string) callbackName,void function(immutable(string)) cb)
+    {
+        import std.conv : to;
+        writeln("setCallback "~callbackName~" => "~to!string(cb));
+        callbacks[callbackName] = cb;
+        auto callbackNameCString = toStringz(callbackName);
+        webkit_user_content_manager_register_script_message_handler(webkitUserContentManager, callbackNameCString);
+        g_signal_connect_data(
+            cast(void*) webkitUserContentManager, 
+            cast(const char*) toStringz("script-message-received::"~callbackName),
+            cast(void*)&custom_callback, 
+            cast(void*)cb, 
+            null,  
+            GConnectFlags.G_CONNECT_AFTER
+        );
+        webkit_web_view_run_javascript(
+            cast(WebKitWebView*)(data.priv.webview),
+            toStringz("dhanos."~callbackName~"=function(x){" ~ "window.webkit.messageHandlers."~callbackName~".postMessage(x);}"),
+            null, 
+            null, 
+            null
+        );
+    }
 
     void mainLoop()
     {
@@ -394,6 +438,7 @@ class Dhanos_Linux : DhanosInterface
     // }
 private:
     void function(immutable(string)) callback;
+    WebKitUserContentManager* webkitUserContentManager;
 
 public:
 
@@ -450,11 +495,11 @@ public:
         data.priv.scroller = gtk_scrolled_window_new(null, null);
         gtk_container_add(cast(GtkContainer*)(data.priv.window), data.priv.scroller);
 
-        WebKitUserContentManager* webkitUserContentManager = webkit_user_content_manager_new();
+        webkitUserContentManager = webkit_user_content_manager_new();
         webkit_user_content_manager_register_script_message_handler(webkitUserContentManager, "external");
         
-        writeln(this);
-        writeln(cast(void*)this);
+       
+               
 
         g_signal_connect_data(
             cast(void*) webkitUserContentManager, 
@@ -464,6 +509,9 @@ public:
             null,  
             GConnectFlags.G_CONNECT_AFTER
         );
+
+
+       
                
 
         data.priv.webview = webkit_web_view_new_with_user_content_manager(webkitUserContentManager);
@@ -493,6 +541,12 @@ public:
         webkit_web_view_run_javascript(cast(WebKitWebView*)(data.priv.webview),
                 "window.external={invoke:function(x){" ~ "window.webkit.messageHandlers.external.postMessage(x);}}",
                 null, null, null);
+
+        webkit_web_view_run_javascript(cast(WebKitWebView*)(data.priv.webview),
+                "dhanos = {}",
+                null, null, null);
+
+         setCallback("loaded",&loaded);
 
         auto d = toStringz("destroy");
         g_signal_connect_data(data.priv.window, cast(char*) d,
