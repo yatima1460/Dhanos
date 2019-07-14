@@ -14,6 +14,13 @@ extern (C) struct GtkWidget;
 extern (C) void gtk_widget_set_size_request(GtkWidget*, int, int);
 extern (C) void gtk_widget_show_all(GtkWidget*);
 
+// struct GtkRequisition {
+//   int width;
+//   int height;
+// };
+
+// extern (C) void gtk_widget_size_request(GtkWidget*,GtkRequisition*);
+
 // GTK window
 enum GtkWindowType
 {
@@ -263,6 +270,11 @@ void webview_destroy_cb(GtkWidget* widget, void* arg)
     writeln("destroy DONE");
 }
 
+void webview_context_menu_cb(GtkWidget* widget, void* arg)
+{
+
+}
+
 void raw_callback(Dhanos_Linux d, immutable(string) js_command)
 
 {
@@ -301,9 +313,10 @@ import DhanosInterface : DhanosInterface;
 
 struct dhanos_callback_data
 {
+    string padding;
     DhanosInterface dhanos;
     void* callback_func;
-    char* callback_name;
+    string callback_name;
 }
 
 extern (C) void custom_callback(WebKitUserContentManager* manager,
@@ -312,7 +325,7 @@ extern (C) void custom_callback(WebKitUserContentManager* manager,
 
     dhanos_callback_data* callback_data = cast(dhanos_callback_data*) user_data;
 
-    writeln("[Dhanos] custom_callback '" ~ fromStringz(callback_data.callback_name) ~ "' BEGIN");
+    writeln("[Dhanos] custom_callback '" ~ callback_data.callback_name ~ "' BEGIN");
 
     // get input value from JS function
     JSGlobalContextRef context = webkit_javascript_result_get_global_context(js_result);
@@ -396,7 +409,7 @@ class Dhanos_Linux : DhanosInterface
 
         dcd.dhanos = this;
 
-        dcd.callback_name = cast(char*) callbackNameCString;
+        dcd.callback_name = callbackName;
 
         g_signal_connect_data(cast(void*) webkitUserContentManager,
                 cast(const char*) toStringz("script-message-received::" ~ callbackName),
@@ -599,15 +612,18 @@ public:
         {
             //writeln("b");
             // gtk_window_set_default_size(cast(GtkWindow*)(data.priv.window), 1920, 1080);
-            //gtk_window_set_position(cast(GtkWindow*) data.priv.window, GtkWindowPosition.GTK_WIN_POS_CENTER_ALWAYS);
+            
             //gtk_window_set_default_size(cast(GtkWindow*)(data.priv.window),
             //        data.width, data.height);
                     
 // gtk_window_set_default_geometry (GtkWindow *window,
 //                                  gint width,
 //                                  gint height);
-            gtk_widget_set_size_request(data.priv.window, data.width, data.height);
+            gtk_widget_set_size_request(data.priv.window, data.width, data.height);     
         }
+
+
+        gtk_window_set_position(cast(GtkWindow*) data.priv.window, GtkWindowPosition.GTK_WIN_POS_CENTER);
 
         //gtk_window_unfullscreen(cast(GtkWindow*) data.priv.window);
 
@@ -638,7 +654,6 @@ public:
         // Add the browser to GTK
         gtk_container_add(cast(GtkContainer*)(data.priv.scroller), data.priv.webview);
 
-
         // Webkit settings here
         WebKitSettings* settings = webkit_web_view_get_settings(cast(WebKitWebView*)(data.priv.webview));
 
@@ -651,18 +666,30 @@ public:
         {
             webkit_settings_set_enable_write_console_messages_to_stdout(settings, true);
             webkit_settings_set_enable_developer_extras(settings, true);
+
+
         }
         else
         {
             // g_signal_connect_data(data.priv.webview, "context-menu",
-            //         G_CALLBACK(webview_context_menu_cb), data, null,
+            //         &webview_context_menu_cb, null, null,
             //     GConnectFlags.G_CONNECT_AFTER);
+        // webkit_web_view_run_javascript(cast(WebKitWebView*)(data.priv.webview),
+        //         "document.oncontextmenu = null", null, null, null);
+
+            
         }
 
-           gtk_window_set_position(cast(GtkWindow*) data.priv.window, GtkWindowPosition.GTK_WIN_POS_CENTER_ALWAYS);
+        //gtk_window_set_position(cast(GtkWindow*) data.priv.window, GtkWindowPosition.GTK_WIN_POS_CENTER_ALWAYS);
 
         // Spawn the window
         gtk_widget_show_all(data.priv.window);
+
+        // GtkRequisition requisition;
+        // gtk_widget_size_request (data.priv.window, &requisition);
+
+        // writeln(requisition.width);
+        // writeln(requisition.height);
 
          // Create the dhanos object to hold the callbacks
         webkit_web_view_run_javascript(cast(WebKitWebView*)(data.priv.webview),
