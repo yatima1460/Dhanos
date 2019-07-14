@@ -448,6 +448,11 @@ class Dhanos_Linux : DhanosInterface
 
     }
 
+    void setWindowSize(int w,int h)
+    {
+        gtk_widget_set_size_request(data.priv.window, w, h);
+    }
+
     void setTitle(immutable(string) title)
     {
         gtk_window_set_title(cast(GtkWindow*) data.priv.window, toStringz(title));

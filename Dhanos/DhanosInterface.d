@@ -13,4 +13,7 @@ interface DhanosInterface
     Object getUserObject();
       void setAlwaysOnTop(bool flag);
    void setTitle(immutable(string) title);
+
+
+   void setWindowSize(int,int);
 }
