@@ -34,11 +34,18 @@ extern (C) GtkWindow* GTK_WINDOW(GtkWidget*);
 extern (C) GtkWindow* gtk_window_new(GtkWindowType);
 extern (C) void gtk_window_set_title(GtkWindow*, const char*);
 extern (C) void gtk_window_set_default_size(GtkWindow*, int, int);
+extern (C)  void
+gtk_window_set_default_geometry (GtkWindow *window,
+                                 int width,
+                                 int height);
 extern (C) void gtk_window_set_resizable(GtkWindow*, bool);
 extern (C) void gtk_window_set_decorated(GtkWindow*, bool);
 extern (C) void gtk_window_fullscreen(GtkWindow*);
 extern (C) void gtk_window_unfullscreen(GtkWindow*);
 extern (C) void gtk_window_set_position(GtkWindow*, GtkWindowPosition);
+extern (C) void gtk_window_move(GtkWindow* window, int x, int y);
+extern (C) int gdk_screen_width();
+extern (C) int gdk_screen_height();
 
 enum GConnectFlags
 {
@@ -518,8 +525,6 @@ public:
 
     // }
 
-  
-
     Object o;
 
     void setUserObject(Object o)
@@ -576,24 +581,35 @@ public:
 
         gtk_window_set_title(cast(GtkWindow*) data.priv.window, data.title);
 
-        gtk_window_set_position(cast(GtkWindow*) data.priv.window, GtkWindowPosition.GTK_WIN_POS_CENTER_ALWAYS);
 
+        //gtk_window_set_default_geometry (cast(GtkWindow*)(data.priv.window),   width,   height);
+        //gtk_widget_set_size_request(data.priv.window, data.width, data.height);
+         //gtk_window_set_default_size(cast(GtkWindow*)(data.priv.window), data.width, data.height);
+                                
+
+                //    gtk_window_set_default_size(cast(GtkWindow*)(data.priv.window),
+                //     data.width, data.height);              
         if (data.resizable)
         {
-            writeln("a");
-            gtk_window_set_default_size(cast(GtkWindow*)(data.priv.window), data.width, data.height);
+            //writeln("a");
+            gtk_window_set_default_size(cast(GtkWindow*)(data.priv.window),
+                    data.width, data.height);
         }
         else
         {
-            writeln("b");
-           // gtk_window_set_default_size(cast(GtkWindow*)(data.priv.window), 1920, 1080);
-             //gtk_window_set_position(cast(GtkWindow*) data.priv.window, GtkWindowPosition.GTK_WIN_POS_CENTER_ALWAYS);
-              gtk_window_set_default_size(cast(GtkWindow*)(data.priv.window), data.width, data.height);
-            //gtk_widget_set_size_request(data.priv.window, data.width, data.height);
+            //writeln("b");
+            // gtk_window_set_default_size(cast(GtkWindow*)(data.priv.window), 1920, 1080);
+            //gtk_window_set_position(cast(GtkWindow*) data.priv.window, GtkWindowPosition.GTK_WIN_POS_CENTER_ALWAYS);
+            //gtk_window_set_default_size(cast(GtkWindow*)(data.priv.window),
+            //        data.width, data.height);
+                    
+// gtk_window_set_default_geometry (GtkWindow *window,
+//                                  gint width,
+//                                  gint height);
+            gtk_widget_set_size_request(data.priv.window, data.width, data.height);
         }
 
         //gtk_window_unfullscreen(cast(GtkWindow*) data.priv.window);
-         gtk_window_set_position(cast(GtkWindow*) data.priv.window, GtkWindowPosition.GTK_WIN_POS_CENTER_ALWAYS);
 
         gtk_window_set_resizable(cast(GtkWindow*)(data.priv.window), cast(bool) data.resizable);
 
@@ -617,17 +633,23 @@ public:
                 toStringz(checkURL(fromStringz(data.url).idup)));
         g_signal_connect_data(cast(void*) data.priv.webview,
                 cast(const char*) toStringz("load-changed"), &webview_load_changed_cb,
-                cast(void*) &data, null, GConnectFlags.G_CONNECT_AFTER);
+                cast(void*)&data, null, GConnectFlags.G_CONNECT_AFTER);
 
         // Add the browser to GTK
         gtk_container_add(cast(GtkContainer*)(data.priv.scroller), data.priv.webview);
 
+
+        // Webkit settings here
+        WebKitSettings* settings = webkit_web_view_get_settings(cast(WebKitWebView*)(data.priv.webview));
+
+        // Allow access to local files to load icons or thumbnails
+        webkit_settings_set_allow_file_access_from_file_urls(settings, true);
+        webkit_settings_set_allow_universal_access_from_file_urls(settings, true);
+
         // If we are in debug mode enable developer tools
         debug
         {
-            WebKitSettings* settings = webkit_web_view_get_settings(cast(WebKitWebView*)(data.priv.webview));
             webkit_settings_set_enable_write_console_messages_to_stdout(settings, true);
-
             webkit_settings_set_enable_developer_extras(settings, true);
         }
         else
@@ -637,27 +659,36 @@ public:
             //     GConnectFlags.G_CONNECT_AFTER);
         }
 
-        // Allow access to local files to load icons or thumbnails
-        webkit_settings_set_allow_file_access_from_file_urls(settings, true);
-        webkit_settings_set_allow_universal_access_from_file_urls(settings, true);
+           gtk_window_set_position(cast(GtkWindow*) data.priv.window, GtkWindowPosition.GTK_WIN_POS_CENTER_ALWAYS);
 
         // Spawn the window
         gtk_widget_show_all(data.priv.window);
 
-        gtk_window_set_position(cast(GtkWindow*) data.priv.window, GtkWindowPosition.GTK_WIN_POS_CENTER_ALWAYS);
-
-    
-        // Create the dhanos object to hold the callbacks
+         // Create the dhanos object to hold the callbacks
         webkit_web_view_run_javascript(cast(WebKitWebView*)(data.priv.webview),
                 "dhanos = {}", null, null, null);
 
-        
         // Callback when the window [X] is pressed
-        g_signal_connect_data(data.priv.window, "destroy",
-                cast(void*)&webview_destroy_cb, cast(void*) &data, null,
-                GConnectFlags.G_CONNECT_AFTER);
+        g_signal_connect_data(data.priv.window, "destroy", cast(void*)&webview_destroy_cb,
+                cast(void*)&data, null, GConnectFlags.G_CONNECT_AFTER);
 
-        data.external_invoke_cb = cast(webview_external_invoke_cb_t)&raw_callback;
+        //data.external_invoke_cb = cast(webview_external_invoke_cb_t)&raw_callback;
+
+      
+
+           //gtk_window_set_gravity(cast(GtkWindow*) data.priv.window, GdkGravity.GDK_GRAVITY_CENTER);
+        // gtk_window_move(cast(GtkWindow*) data.priv.window, gdk_screen_width()/2, gdk_screen_height()/2);
+        //  gtk_window_set_position(cast(GtkWindow*) data.priv.window, GtkWindowPosition.GTK_WIN_POS_CENTER);
+           //gtk_window_move (cast(GtkWindow*) data.priv.window, 0, 0);
+
+        
+        //gtk_window_set_position(cast(GtkWindow*) data.priv.window, GtkWindowPosition.GTK_WIN_POS_CENTER_ALWAYS);
+
+
+       
+      
+
+       
     }
 
     void setBorder(bool visible)
