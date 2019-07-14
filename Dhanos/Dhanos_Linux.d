@@ -105,6 +105,8 @@ extern (C) GtkWidget* webkit_web_view_new_with_user_content_manager(
         WebKitUserContentManager* user_content_manager);
 extern (C) void webkit_web_view_load_uri(WebKitWebView* web_view, const char* uri);
 
+extern (C) void gtk_window_set_keep_above(GtkWindow*,bool);
+
 enum GdkGravity
 {
     GDK_GRAVITY_NORTH_WEST,
@@ -393,6 +395,13 @@ class Dhanos_Linux : DhanosInterface
 
     //void setFullscreen(bool fullscreen);
     void*[immutable(string)] callbacks;
+
+
+
+    void setAlwaysOnTop(bool flag)
+    {
+        gtk_window_set_keep_above(cast(GtkWindow*)data.priv.window, flag);
+    }
 
     void setCallback(immutable(string) callbackName, void* cb)
     {

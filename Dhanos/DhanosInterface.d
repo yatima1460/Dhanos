@@ -11,5 +11,6 @@ interface DhanosInterface
     void runJavascript(immutable(string) js);
     void setUserObject(Object o);
     Object getUserObject();
+      void setAlwaysOnTop(bool flag);
    void setTitle(immutable(string) title);
 }
