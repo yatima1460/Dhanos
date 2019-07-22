@@ -2,8 +2,14 @@ module Dhanos;
 
 import DhanosInterface : DhanosInterface;
 
-DhanosInterface getNewPlatformInstance(immutable(string) title,
-        immutable(string) url, int width, int height, bool resizable)
+
+DhanosInterface getNewPlatformInstance(immutable(string) title, immutable(string) url, int width, int height, bool resizable)
+in (title !is null)
+in (title.length > 0)
+in (url !is null)
+in (url.length > 0)
+in (width > 0)
+in (height > 0)
 {
     import std.stdio;
 

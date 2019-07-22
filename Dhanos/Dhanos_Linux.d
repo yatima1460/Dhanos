@@ -3,16 +3,16 @@ module Dhanos_Linux;
 import std.string : toStringz;
 
 // GLIB GAsyncQueue
-extern (C) struct GAsyncQueue;
-extern (C) GAsyncQueue* g_async_queue_new();
+nothrow @nogc extern (C) struct GAsyncQueue;
+nothrow @nogc extern (C) GAsyncQueue* g_async_queue_new();
 
 // GTK general
-extern (C) int gtk_init_check(int* argc, char*** argv);
+nothrow @nogc extern (C) int gtk_init_check(int* argc, char*** argv);
 
 // GTK widget
-extern (C) struct GtkWidget;
-extern (C) void gtk_widget_set_size_request(GtkWidget*, int, int);
-extern (C) void gtk_widget_show_all(GtkWidget*);
+nothrow @nogc extern (C) struct GtkWidget;
+nothrow @nogc extern (C) void gtk_widget_set_size_request(GtkWidget*, int, int);
+nothrow @nogc extern (C) void gtk_widget_show_all(GtkWidget*);
 
 // struct GtkRequisition {
 //   int width;
@@ -36,23 +36,22 @@ enum GtkWindowPosition
     GTK_WIN_POS_CENTER_ON_PARENT
 }
 
-extern (C) struct GtkWindow;
-extern (C) GtkWindow* GTK_WINDOW(GtkWidget*);
-extern (C) GtkWindow* gtk_window_new(GtkWindowType);
-extern (C) void gtk_window_set_title(GtkWindow*, const char*);
-extern (C) void gtk_window_set_default_size(GtkWindow*, int, int);
-extern (C)  void
-gtk_window_set_default_geometry (GtkWindow *window,
+nothrow @nogc extern (C) struct GtkWindow;
+nothrow @nogc extern (C) GtkWindow* GTK_WINDOW(GtkWidget*);
+nothrow @nogc extern (C) GtkWindow* gtk_window_new(GtkWindowType);
+nothrow @nogc extern (C) void gtk_window_set_title(GtkWindow*, const char*);
+nothrow @nogc extern (C) void gtk_window_set_default_size(GtkWindow*, int, int);
+nothrow @nogc extern (C) void gtk_window_set_default_geometry (GtkWindow *window,
                                  int width,
                                  int height);
-extern (C) void gtk_window_set_resizable(GtkWindow*, bool);
-extern (C) void gtk_window_set_decorated(GtkWindow*, bool);
-extern (C) void gtk_window_fullscreen(GtkWindow*);
-extern (C) void gtk_window_unfullscreen(GtkWindow*);
-extern (C) void gtk_window_set_position(GtkWindow*, GtkWindowPosition);
-extern (C) void gtk_window_move(GtkWindow* window, int x, int y);
-extern (C) int gdk_screen_width();
-extern (C) int gdk_screen_height();
+nothrow @nogc extern (C) void gtk_window_set_resizable(GtkWindow*, bool);
+nothrow @nogc extern (C) void gtk_window_set_decorated(GtkWindow*, bool);
+nothrow @nogc extern (C) void gtk_window_fullscreen(GtkWindow*);
+nothrow @nogc extern (C) void gtk_window_unfullscreen(GtkWindow*);
+nothrow @nogc extern (C) void gtk_window_set_position(GtkWindow*, GtkWindowPosition);
+nothrow @nogc extern (C) void gtk_window_move(GtkWindow* window, int x, int y);
+nothrow @nogc extern (C) int gdk_screen_width();
+nothrow @nogc extern (C) int gdk_screen_height();
 
 enum GConnectFlags
 {
@@ -60,83 +59,73 @@ enum GConnectFlags
     G_CONNECT_SWAPPED
 };
 
-extern (C) void g_signal_connect_data(void* instance, const char* detailed_signal,
+nothrow @nogc extern (C) void g_signal_connect_data(void* instance, const char* detailed_signal,
         void* c_handler, void* data, void* destroy_data, GConnectFlags connect_flags);
 
-extern (C) struct GtkAdjustment;
-extern (C) GtkWidget* gtk_scrolled_window_new(GtkAdjustment* hadjustment,
+nothrow @nogc extern (C) struct GtkAdjustment;
+nothrow @nogc extern (C) GtkWidget* gtk_scrolled_window_new(GtkAdjustment* hadjustment,
         GtkAdjustment* vadjustment);
 
-extern (C) struct GtkContainer;
-extern (C) GtkContainer* GTK_CONTAINER(GtkWidget*);
-extern (C) void gtk_container_add(GtkContainer* container, GtkWidget* widget);
+nothrow @nogc extern (C) struct GtkContainer;
+nothrow @nogc extern (C) GtkContainer* GTK_CONTAINER(GtkWidget*);
+nothrow @nogc extern (C) void gtk_container_add(GtkContainer* container, GtkWidget* widget);
 
-extern (C) struct WebKitUserContentManager;
+nothrow @nogc extern (C) struct WebKitUserContentManager;
 
-extern (C) GObject* G_OBJECT(GtkWidget*);
+nothrow @nogc extern (C) GObject* G_OBJECT(GtkWidget*);
 
-extern (C) void* G_CALLBACK(void*);
+nothrow @nogc extern (C) void* G_CALLBACK(void*);
 
-extern (C) WebKitWebView* WEBKIT_WEB_VIEW(GtkWidget*);
-extern (C) WebKitUserContentManager* webkit_user_content_manager_new();
-extern (C) bool webkit_user_content_manager_register_script_message_handler(
+nothrow @nogc extern (C) WebKitWebView* WEBKIT_WEB_VIEW(GtkWidget*);
+nothrow @nogc extern (C) WebKitUserContentManager* webkit_user_content_manager_new();
+nothrow @nogc extern (C) bool webkit_user_content_manager_register_script_message_handler(
         WebKitUserContentManager* manager, const char* name);
-extern (C) struct WebKitSettings;
-extern (C) struct WebKitWebView;
+nothrow @nogc extern (C) struct WebKitSettings;
+nothrow @nogc extern (C) struct WebKitWebView;
 
-extern (C) int gtk_main_iteration_do(int);
-extern (C) WebKitSettings* webkit_web_view_get_settings(WebKitWebView* web_view);
-extern (C) void webkit_settings_set_enable_write_console_messages_to_stdout(
+nothrow @nogc extern (C) int gtk_main_iteration_do(int);
+nothrow @nogc extern (C) WebKitSettings* webkit_web_view_get_settings(WebKitWebView* web_view);
+nothrow @nogc extern (C) void webkit_settings_set_enable_write_console_messages_to_stdout(
         WebKitSettings* settings, bool enabled);
-extern (C) void webkit_settings_set_enable_developer_extras(WebKitSettings* settings, bool enabled);
+nothrow @nogc extern (C) void webkit_settings_set_enable_developer_extras(WebKitSettings* settings, bool enabled);
 
-extern (C) void webkit_settings_set_allow_file_access_from_file_urls(WebKitSettings*, bool);
-extern (C) void webkit_settings_set_allow_universal_access_from_file_urls(WebKitSettings*, bool);
+nothrow @nogc extern (C) void webkit_settings_set_allow_file_access_from_file_urls(WebKitSettings*, bool);
+nothrow @nogc extern (C) void webkit_settings_set_allow_universal_access_from_file_urls(WebKitSettings*, bool);
 
-extern (C) struct GCancellable;
-extern (C) struct GAsyncResult;
-extern (C) struct GObject;
+nothrow @nogc extern (C) struct GCancellable;
+nothrow @nogc extern (C) struct GAsyncResult;
+nothrow @nogc extern (C) struct GObject;
 alias GAsyncReadyCallback = void function(GObject* source_object,
         GAsyncResult* res, void* user_data);
-extern (C) void webkit_web_view_run_javascript(WebKitWebView* web_view, const char* script,
+nothrow @nogc extern (C) void webkit_web_view_run_javascript(WebKitWebView* web_view, const char* script,
         GCancellable* cancellable, GAsyncReadyCallback callback, void* user_data);
 
-extern (C) GtkWidget* webkit_web_view_new_with_user_content_manager(
+nothrow @nogc extern (C) GtkWidget* webkit_web_view_new_with_user_content_manager(
         WebKitUserContentManager* user_content_manager);
-extern (C) void webkit_web_view_load_uri(WebKitWebView* web_view, const char* uri);
+nothrow @nogc extern (C) void webkit_web_view_load_uri(WebKitWebView* web_view, const char* uri);
 
-extern (C) void gtk_window_set_keep_above(GtkWindow*,bool);
+nothrow @nogc extern (C) void gtk_window_set_keep_above(GtkWindow* w,bool);
+
 
 enum GdkGravity
 {
     GDK_GRAVITY_NORTH_WEST,
-
     GDK_GRAVITY_NORTH,
-
     GDK_GRAVITY_NORTH_EAST,
-
     GDK_GRAVITY_WEST,
-
     GDK_GRAVITY_CENTER,
-
     GDK_GRAVITY_EAST,
-
     GDK_GRAVITY_SOUTH_WEST,
-
     GDK_GRAVITY_SOUTH,
-
     GDK_GRAVITY_SOUTH_EAST,
-
     GDK_GRAVITY_STATIC
-
 };
 
-extern (C) void gtk_window_set_gravity(GtkWindow*, GdkGravity);
+@nogc extern (C) void gtk_window_set_gravity(GtkWindow*, GdkGravity);
 
 struct webview_priv
 {
-
-    GtkWidget* window;
+    GtkWindow* window;
     GtkWidget* scroller;
     GtkWidget* webview;
     GtkWidget* inspector_window;
@@ -172,16 +161,16 @@ struct webview
 //extern (C) int webview(const char* title, const char* url, int width, int height, int resizable);
 // extern (C) int webview_init(webview* w);
 // extern (C) int webview_loop(webview* w, bool);
-extern (C) int webview_eval(webview* w, const char* js);
-extern (C) void webview_terminate(webview* w);
+nothrow @nogc extern (C) int webview_eval(webview* w, const char* js);
+//nothrow @nogc extern (C) void webview_terminate(webview* w);
 
 alias webview_dispatch_fn = void function(webview* w, void* arg);
-extern (C) void webview_dispatch(webview* w, webview_dispatch_fn fn, void* arg);
+nothrow @nogc extern (C) void webview_dispatch(webview* w, webview_dispatch_fn fn, void* arg);
 
 import std.stdio : writeln;
 import std.string : fromStringz;
 
-extern (C) struct WebKitJavascriptResult;
+@nogc extern (C) struct WebKitJavascriptResult;
 enum WebKitLoadEvent
 {
     WEBKIT_LOAD_STARTED,
@@ -193,70 +182,83 @@ enum WebKitLoadEvent
 alias JSGlobalContextRef = void*;
 alias JSValueRef = void*;
 alias JSStringRef = void*;
-extern (C) JSStringRef JSValueToStringCopy(JSGlobalContextRef, JSValueRef, void*);
-extern (C) size_t JSStringGetMaximumUTF8CStringSize(JSStringRef);
 
-extern (C) JSGlobalContextRef webkit_javascript_result_get_global_context(
-        WebKitJavascriptResult* js_result);
 
-extern (C) JSValueRef webkit_javascript_result_get_value(WebKitJavascriptResult* js_result);
-
-extern (C) void JSStringGetUTF8CString(JSStringRef, char*, size_t);
-
-extern (C) void JSStringRelease(JSStringRef);
+nothrow @nogc extern (C) JSStringRef JSValueToStringCopy(JSGlobalContextRef, JSValueRef, void*);
+nothrow @nogc extern (C) size_t JSStringGetMaximumUTF8CStringSize(JSStringRef);
+nothrow @nogc extern (C) JSGlobalContextRef webkit_javascript_result_get_global_context(WebKitJavascriptResult* js_result);
+nothrow @nogc extern (C) JSValueRef webkit_javascript_result_get_value(WebKitJavascriptResult* js_result);
+nothrow @nogc extern (C) void JSStringGetUTF8CString(JSStringRef, char*, size_t);
+nothrow @nogc extern (C) void JSStringRelease(JSStringRef);
 
 alias gpointer = void*;
 
-extern (C) void external_message_received_cb(WebKitUserContentManager* manager,
-        WebKitJavascriptResult* js_result, gpointer user_data)
+import std.exception : enforce;
+
+// nothrow extern (C) void external_message_received_cb(WebKitUserContentManager* manager, WebKitJavascriptResult* js_result, gpointer user_data)
+// in (manager != null)
+// in (js_result != null)
+// in (user_data != null)
+// {
+//     //writeln("external_message_received_cb");
+
+//     //writeln(user_data);
+//     //writeln(cast(Dhanos_Linux*) user_data);
+
+//     Dhanos_Linux w = cast(Dhanos_Linux) user_data;
+//     assert(w !is null);
+
+//     //writeln("external_message_received_cb 2");
+//    // writeln(w);
+//     //writeln("external_message_received_cb 2.5");
+//     //writeln(w.toString());
+//     //writeln("external_message_received_cb 3");
+
+//     JSGlobalContextRef context = webkit_javascript_result_get_global_context(js_result);
+//     assert(context!is null);
+
+//     JSValueRef value = webkit_javascript_result_get_value(js_result);
+//     assert(value !is null);
+
+//     JSStringRef js = JSValueToStringCopy(context, value, null);
+//     assert(js !is null);
+
+
+//     size_t n = JSStringGetMaximumUTF8CStringSize(js);
+
+//     // char* s = g_new(char, n);
+//     char[] s = new char[n];
+//     assert(s !is null);
+
+//     JSStringGetUTF8CString(js, cast(char*) s, n);
+
+//     //writeln("external_message_received_cb external_invoke_cb s");
+//     const char* ss = cast(const char*) s;
+//     assert(ss !is null);
+//     immutable(string) js_command = cast(immutable) fromStringz(ss);
+//     assert(js_command !is null);
+//     //writeln("external_message_received_cb external_invoke_cb ss");
+//    // writeln(w);
+//     // writeln(w.external_invoke_cb);
+//     // writeln(w.dhanos_ptr);
+//     //writeln(js_command);
+//     assert(w !is null);
+//     w.callback(js_command);
+//     //writeln("external_message_received_cb external_invoke_cb e");
+
+//     assert(js);
+//     JSStringRelease(js);
+//     //writeln("external_message_received_cb e");
+//     // g_free(s);
+// }
+
+@nogc extern(C) void webview_load_changed_cb(WebKitWebView* wwv, WebKitLoadEvent event, void* arg)
+in(wwv !is null)
+in(arg !is null)
 {
-
-    writeln("external_message_received_cb");
-
-    writeln(user_data);
-    writeln(cast(Dhanos_Linux*) user_data);
-
-    Dhanos_Linux w = cast(Dhanos_Linux) user_data;
-
-    writeln("external_message_received_cb 2");
-    writeln(w);
-    writeln("external_message_received_cb 2.5");
-    writeln(w.toString());
-    writeln("external_message_received_cb 3");
-
-    JSGlobalContextRef context = webkit_javascript_result_get_global_context(js_result);
-
-    JSValueRef value = webkit_javascript_result_get_value(js_result);
-
-    JSStringRef js = JSValueToStringCopy(context, value, null);
-
-    size_t n = JSStringGetMaximumUTF8CStringSize(js);
-
-    // char* s = g_new(char, n);
-    char[] s = new char[n];
-
-    JSStringGetUTF8CString(js, cast(char*) s, n);
-
-    writeln("external_message_received_cb external_invoke_cb s");
-    const char* ss = cast(const char*) s;
-    immutable(string) js_command = cast(immutable) fromStringz(ss);
-    writeln("external_message_received_cb external_invoke_cb ss");
-    writeln(w);
-    // writeln(w.external_invoke_cb);
-    // writeln(w.dhanos_ptr);
-    writeln(js_command);
-    w.callback(js_command);
-    writeln("external_message_received_cb external_invoke_cb e");
-
-    JSStringRelease(js);
-    writeln("external_message_received_cb e");
-    // g_free(s);
-}
-
-void webview_load_changed_cb(WebKitWebView* wwv, WebKitLoadEvent event, void* arg)
-{
-    writeln("webview_load_changed_cb");
+    //writeln("webview_load_changed_cb");
     webview* w = cast(webview*) arg;
+    assert(w != null);
 
     if (event == WebKitLoadEvent.WEBKIT_LOAD_FINISHED)
     {
@@ -264,34 +266,39 @@ void webview_load_changed_cb(WebKitWebView* wwv, WebKitLoadEvent event, void* ar
     }
 }
 
-void webview_destroy_cb(GtkWidget* widget, void* arg)
+@nogc extern(C) void webview_destroy_cb(GtkWidget* widget, void* arg)
+in (widget != null)
+in (arg != null)
 {
-    writeln("webview_destroy_cb");
+    //writeln("webview_destroy_cb");
     webview* w = cast(webview*) arg;
-    webview_terminate(w);
-    writeln("destroy DONE");
+    w.priv.should_exit = 1;
+    //writeln("destroy DONE");
 }
 
-void webview_context_menu_cb(GtkWidget* widget, void* arg)
+extern(C) void webview_context_menu_cb(GtkWidget* widget, void* arg)
+in (widget != null)
+in (arg != null)
 {
 
 }
 
-void raw_callback(Dhanos_Linux d, immutable(string) js_command)
+// extern(C) void raw_callback(Dhanos_Linux d, immutable(string) js_command)
 
-{
-    writeln("raw_callback");
 
-    if (d is null)
-        throw new Exception("Dhanos object is null!");
-    if (js_command == null)
-        throw new Exception("Javascript callback argument can't be null!");
-    if (d.callback == null)
-        throw new Exception("JS=>D callback can't be null!");
+// {
+//     writeln("raw_callback");
 
-    d.callback(js_command);
+//     if (d is null)
+//         throw new Exception("Dhanos object is null!");
+//     if (js_command == null)
+//         throw new Exception("Javascript callback argument can't be null!");
+//     if (d.callback == null)
+//         throw new Exception("JS=>D callback can't be null!");
 
-}
+//     d.callback(js_command);
+
+// }
 
 import DhanosInterface : DhanosInterface;
 
@@ -313,47 +320,81 @@ import DhanosInterface : DhanosInterface;
 //     custom_callback(js_value);
 //  }
 
-struct dhanos_callback_data
+import DhanosInterface : DhanosJSCallback;
+
+extern (C) struct DhanosCallbackData
 {
-    string padding;
     DhanosInterface dhanos;
-    void* callback_func;
-    string callback_name;
+    invariant
+    {
+        assert(dhanos !is null);
+    }
+
+    DhanosJSCallback callback_func;
+    invariant
+    {
+        assert(callback_func !is null);
+    }
+
+    // string callback_name;
+    // invariant
+    // {
+    //     assert(callback_name !is null);
+    //     assert(callback_name.length > 0);
+    // }
 }
 
-extern (C) void custom_callback(WebKitUserContentManager* manager,
-        WebKitJavascriptResult* js_result, gpointer user_data)
+extern (C) void custom_callback(WebKitUserContentManager* manager, WebKitJavascriptResult* js_result, gpointer user_data)
+in (manager !is null)
+in (js_result !is null)
+in (user_data !is null)
 {
 
-    dhanos_callback_data* callback_data = cast(dhanos_callback_data*) user_data;
-
-    writeln("[Dhanos] custom_callback '" ~ callback_data.callback_name ~ "' BEGIN");
+    DhanosCallbackData* callback_data = cast(DhanosCallbackData*) user_data;
+    assert(callback_data !is null);
+    //writeln("[Dhanos] custom_callback '" ~ callback_data.callback_name ~ "' BEGIN");
 
     // get input value from JS function
     JSGlobalContextRef context = webkit_javascript_result_get_global_context(js_result);
+    assert(context !is null);
     JSValueRef value = webkit_javascript_result_get_value(js_result);
+    assert(value !is null);
     JSStringRef js = JSValueToStringCopy(context, value, null);
+    assert(js !is null);
     size_t n = JSStringGetMaximumUTF8CStringSize(js);
     char[] s = new char[n];
+    assert(s !is null);
     JSStringGetUTF8CString(js, cast(char*) s, n);
     const char* ss = cast(const char*) s;
+    assert(ss !is null);
     immutable(string) js_value = cast(immutable) fromStringz(ss);
+    assert(js_value !is null);
 
-    writeln("[Dhanos] custom_callback value: " ~ js_value);
 
-    auto cf = cast(void function(DhanosInterface, immutable(string))) callback_data.callback_func;
+    //immutable(string) js_value = "owo";
+
+    //writeln("[Dhanos] custom_callback value: " ~ js_value);
+
+    
+   
+
+    
 
     // DhanosInterface dd = *callback_data.dhanos;
-    writeln("[Dhanos] custom_callback call");
+    //writeln("[Dhanos] custom_callback call");
     //writeln((&callback_data.dhanos.setTitle).ptr);
 
-    cf(callback_data.dhanos, js_value);
-    writeln("[Dhanos] custom_callback END");
+    assert(callback_data.dhanos !is null);
+    assert(callback_data.callback_func !is null);
+    callback_data.callback_func(callback_data.dhanos, js_value);
+    //writeln("[Dhanos] custom_callback END");
 }
 
 void dhanos_page_loaded(DhanosInterface di, immutable(string) value)
+in (di !is null)
+in (value !is null)
 {
-    writeln("[Dhanos] loaded webpage JS loaded");
+   // writeln("[Dhanos] loaded webpage JS loaded");
 
     di.setTitle("dhanos page loaded test name");
 }
@@ -377,7 +418,7 @@ class Dhanos_Linux : DhanosInterface
         ~ "3E%3C%2Fdiv%3E%3Cscript%20type=%22text%2Fjavascript%22%3E%3C%2Fscript%3E%"
         ~ "3C%2Fbody%3E%0A%3C%2Fhtml%3E";
 
-    static immutable(string) checkURL(immutable(string) url)
+    @nogc static immutable(string) checkURL(immutable(string) url)
     {
         if (url == null || url.length == 0)
         {
@@ -400,43 +441,58 @@ class Dhanos_Linux : DhanosInterface
 
     void setAlwaysOnTop(bool flag)
     {
-        gtk_window_set_keep_above(cast(GtkWindow*)data.priv.window, flag);
+        gtk_window_set_keep_above(data.priv.window, flag);
     }
 
-    void setCallback(immutable(string) callbackName, void* cb)
+    void setCallback(immutable(string) callbackName, DhanosJSCallback cb)
+    in (callbackName !is null)
+    in (callbackName.length != 0)
+    in (cb !is null)
     {
         import std.conv : to;
 
-        writeln("[Dhanos] setCallback " ~ callbackName ~ " => " ~ to!string(cb));
+        //writeln("[Dhanos] setCallback " ~ callbackName ~ " => " ~ to!string(cb));
         callbacks[callbackName] = cb;
         auto callbackNameCString = toStringz(callbackName);
         webkit_user_content_manager_register_script_message_handler(webkitUserContentManager,
                 callbackNameCString);
 
-        dhanos_callback_data* dcd = new dhanos_callback_data();
+        DhanosCallbackData* dcd = new DhanosCallbackData();
         dcd.callback_func = cb;
 
         dcd.dhanos = this;
 
-        dcd.callback_name = callbackName;
+        //dcd.callback_name = callbackName;
 
-        g_signal_connect_data(cast(void*) webkitUserContentManager,
-                cast(const char*) toStringz("script-message-received::" ~ callbackName),
-                cast(void*)&custom_callback, cast(gpointer) dcd, null,
-                GConnectFlags.G_CONNECT_AFTER);
-        webkit_web_view_run_javascript(cast(WebKitWebView*)(data.priv.webview),
-                toStringz("dhanos." ~ callbackName ~ "=function(x){"
-                    ~ "window.webkit.messageHandlers." ~ callbackName ~ ".postMessage(x);}"),
-                null, null, null);
+        g_signal_connect_data(
+            webkitUserContentManager,
+            cast(const char*) toStringz("script-message-received::" ~ callbackName),
+            &custom_callback, 
+            dcd, 
+            null,
+            GConnectFlags.G_CONNECT_AFTER
+        );
+
+        webkit_web_view_run_javascript(
+            cast(WebKitWebView*)(data.priv.webview),
+            toStringz("dhanos." ~ callbackName ~ "=function(x){" ~ "window.webkit.messageHandlers." ~ callbackName ~ ".postMessage(x);}"),
+            null, 
+            null, 
+            null
+        );
     }
 
     void runJavascript(immutable(string) js)
+    in (js !is null)
+    in (js.length != 0)
+    in (data.priv.webview !is null)
     {
         webkit_web_view_run_javascript(cast(WebKitWebView*)(data.priv.webview),
                 toStringz(js), null, null, null);
     }
 
     void mainLoop()
+   
     {
         import std.stdio : writeln;
 
@@ -448,14 +504,19 @@ class Dhanos_Linux : DhanosInterface
 
     }
 
-    void setWindowSize(int w,int h)
+    @nogc void setWindowSize(int w,int h)
+    in (w > 0)
+    in (h > 0)
+    in (data.priv.window !is null)
     {
-        gtk_widget_set_size_request(data.priv.window, w, h);
+        gtk_widget_set_size_request(cast(GtkWidget*)data.priv.window, w, h);
     }
 
     void setTitle(immutable(string) title)
+    in (title !is null)
+    in (title.length > 0)
     {
-        gtk_window_set_title(cast(GtkWindow*) data.priv.window, toStringz(title));
+        gtk_window_set_title(data.priv.window, toStringz(title));
     }
     // this(immutable(string) title, int width, int height, bool resizable)
     // {
@@ -521,30 +582,26 @@ class Dhanos_Linux : DhanosInterface
     //     // return 0;
     // }
 private:
-    void function(immutable(string)) callback;
+    
     WebKitUserContentManager* webkitUserContentManager;
 
 public:
 
-    void close()
+    @nogc void close()
     {
-        writeln("[Dhanos] pre-terminate");
-        webview_terminate(&data);
-        writeln("[Dhanos] post-terminate");
+        data.priv.should_exit = 1;
     }
 
-    void function(immutable(string)) getJSCallback()
-    {
-        return callback;
-    }
+    // @nogc pure void function(immutable(string)) getJSCallback()
+    // {
+    //     return callback;
+    // }
 
-    void setJSCallback(void function(immutable(string)) cb)
-    in(cb != null)
-    {
-        if (cb == null)
-            throw new Exception("D JS input callback is null!");
-        this.callback = cb;
-    }
+    // @nogc void setJSCallback(void function(immutable(string)) cb)
+    // in(cb !is null)
+    // {
+    //     this.callback = cb;
+    // }
 
     // void noop_callback(immutable(string) value)
     // {
@@ -552,19 +609,31 @@ public:
 
     // }
 
-    Object o;
+    void* o;
 
-    void setUserObject(Object o)
+    @nogc @safe void setUserObject(void* o)
     {
         this.o = o;
     }
 
-    Object getUserObject()
+    @nogc @safe pure void* getUserObject()
     {
         return o;
     }
 
-    void init(immutable(string) title, immutable(string) url, int width, int height, bool resizable)
+   @nogc @safe void clearUserObject()
+    {
+        this.o = null;
+    }
+
+
+    
+
+     void init(immutable(string) title, immutable(string) url, int width, int height, bool resizable)
+    in (title !is null)
+    in (url !is null)
+    in (width > 0)
+    in (height > 0)
     {
         this.title = title;
         this.url = url;
@@ -572,8 +641,10 @@ public:
         this.height = height;
         this.resizable = resizable;
 
-        data.title = cast(char*) toStringz(title);
+        data.title = cast(char*)toStringz(title);
+        assert(data.title !is null);
         data.url = cast(char*) toStringz(url);
+        assert(data.url !is null);
         data.width = width;
         data.height = height;
         data.resizable = resizable;
@@ -588,7 +659,10 @@ public:
         data.priv.ready = 0;
         data.priv.should_exit = 0;
         data.priv.queue = g_async_queue_new();
-        data.priv.window = cast(GtkWidget*) gtk_window_new(GtkWindowType.GTK_WINDOW_TOPLEVEL);
+        assert(data.priv.queue !is null);
+        data.priv.window = gtk_window_new(GtkWindowType.GTK_WINDOW_TOPLEVEL);
+        assert(data.priv.window !is null);
+     
 
         //   GdkScreen *screen = gtk_widget_get_screen(widget);
         //     GdkColormap *colormap = gdk_screen_get_rgba_colormap(screen);
@@ -606,7 +680,7 @@ public:
         //     }
         //         gtk_widget_set_colormap(   data.priv.window, colormap);
 
-        gtk_window_set_title(cast(GtkWindow*) data.priv.window, data.title);
+        gtk_window_set_title(data.priv.window, data.title);
 
 
         //gtk_window_set_default_geometry (cast(GtkWindow*)(data.priv.window),   width,   height);
@@ -619,8 +693,7 @@ public:
         if (data.resizable)
         {
             //writeln("a");
-            gtk_window_set_default_size(cast(GtkWindow*)(data.priv.window),
-                    data.width, data.height);
+            gtk_window_set_default_size(data.priv.window, data.width, data.height);
         }
         else
         {
@@ -633,15 +706,15 @@ public:
 // gtk_window_set_default_geometry (GtkWindow *window,
 //                                  gint width,
 //                                  gint height);
-            gtk_widget_set_size_request(data.priv.window, data.width, data.height);     
+            gtk_widget_set_size_request(cast(GtkWidget*) data.priv.window, data.width, data.height);     
         }
 
 
-        gtk_window_set_position(cast(GtkWindow*) data.priv.window, GtkWindowPosition.GTK_WIN_POS_CENTER);
+        gtk_window_set_position(data.priv.window, GtkWindowPosition.GTK_WIN_POS_CENTER);
 
         //gtk_window_unfullscreen(cast(GtkWindow*) data.priv.window);
 
-        gtk_window_set_resizable(cast(GtkWindow*)(data.priv.window), cast(bool) data.resizable);
+        gtk_window_set_resizable(data.priv.window, cast(bool) data.resizable);
 
         // Add scrollbar if needed
         data.priv.scroller = gtk_scrolled_window_new(null, null);
@@ -670,6 +743,7 @@ public:
 
         // Webkit settings here
         WebKitSettings* settings = webkit_web_view_get_settings(cast(WebKitWebView*)(data.priv.webview));
+        assert(settings !is null);
 
         // Allow access to local files to load icons or thumbnails
         webkit_settings_set_allow_file_access_from_file_urls(settings, true);
@@ -697,7 +771,7 @@ public:
         //gtk_window_set_position(cast(GtkWindow*) data.priv.window, GtkWindowPosition.GTK_WIN_POS_CENTER_ALWAYS);
 
         // Spawn the window
-        gtk_widget_show_all(data.priv.window);
+        gtk_widget_show_all(cast(GtkWidget*)data.priv.window);
 
         // GtkRequisition requisition;
         // gtk_widget_size_request (data.priv.window, &requisition);
@@ -732,9 +806,9 @@ public:
        
     }
 
-    void setBorder(bool visible)
+    @nogc void setBorder(bool visible)
     {
-        gtk_window_set_decorated(cast(GtkWindow*) data.priv.window, visible);
+        gtk_window_set_decorated(data.priv.window, visible);
     }
 
     // static int launch(immutable(string) title, immutable(string) url, int width,  int height, bool resizable)
