@@ -22,8 +22,8 @@
   "targetType": "library",
   "preBuildCommands-linux": [
    
-    "if [ $$DUB_BUILD_TYPE = \"debug\" ]; then echo webview.c debug compiled && gcc -c $PACKAGE_DIR/Dhanos/webview.c -O0 -DWEBVIEW_GTK=1 -DWEBVIEW_IMPLEMENTATION `pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.0` -o $PACKAGE_DIR/webview.o; fi",
-    "if [ $$DUB_BUILD_TYPE = \"release\" ]; then echo webview.c release compiled && gcc -c $PACKAGE_DIR/Dhanos/webview.c -O2 -DWEBVIEW_GTK=1 -DWEBVIEW_IMPLEMENTATION `pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.0` -o $PACKAGE_DIR/webview.o; fi"
+    "if [ $$DUB_BUILD_TYPE = \"debug\" ]; then echo webview.c debug compiled && gcc -g3 -m64 -c $PACKAGE_DIR/Dhanos/webview.c -O0 -DWEBVIEW_GTK=1 -DWEBVIEW_IMPLEMENTATION -DNDEBUG=0 `pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.0` -o $PACKAGE_DIR/webview.o; fi",
+    "if [ $$DUB_BUILD_TYPE = \"release\" ]; then echo webview.c release compiled && gcc -m64 -c $PACKAGE_DIR/Dhanos/webview.c -O2 -DWEBVIEW_GTK=1 -DWEBVIEW_IMPLEMENTATION -DNDEBUG=1 `pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.0` -o $PACKAGE_DIR/webview.o; fi"
   ],
   "sourceFiles": ["Dhanos/DhanosInterface.d","Dhanos/Dhanos.d"],
   "sourceFiles-linux": ["webview.o", "Dhanos/Dhanos_Linux.d"],
@@ -33,6 +33,6 @@
   "toolchainRequirements": {
     "dmd": ">=2.086.0",
     "gdc": "no",
-    "ldc": "no"
+    "ldc": ">=1.15.0"
   }
 }
