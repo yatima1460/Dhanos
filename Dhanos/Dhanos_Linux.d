@@ -362,7 +362,7 @@ in (manager !is null)
 in (js_result !is null)
 in (user_data !is null)
 {
-
+     synchronized{
     DhanosCallbackData* callback_data = cast(DhanosCallbackData*) user_data;
     assert(callback_data !is null);
     //writeln("[Dhanos] custom_callback '" ~ callback_data.callback_name ~ "' BEGIN");
@@ -400,6 +400,7 @@ in (user_data !is null)
     assert(callback_data.dhanos !is null);
     assert(callback_data.callback_func !is null);
     callback_data.callback_func(callback_data.dhanos, js_value);
+     }
     //writeln("[Dhanos] custom_callback END");
 }
 
@@ -454,7 +455,9 @@ class Dhanos_Linux : DhanosInterface
 
     @safe @nogc nothrow void setAlwaysOnTop(bool flag)
     {
+         synchronized{
         gtk_window_set_keep_above(data.priv.window, flag);
+         }
     }
 
     @safe void setCallback(immutable(string) callbackName, DhanosJSCallback cb)
@@ -462,6 +465,7 @@ class Dhanos_Linux : DhanosInterface
     in (callbackName.length != 0)
     in (cb !is null)
     {
+         synchronized{
         import std.conv : to;
 
         //writeln("[Dhanos] setCallback " ~ callbackName ~ " => " ~ to!string(cb));
@@ -492,12 +496,15 @@ class Dhanos_Linux : DhanosInterface
             null, 
             null
         );
+         }
     }
 
     @safe nothrow void runJavascript(immutable(string) js)
     in (data.priv.webview !is null)
     {
+        synchronized{
         webkit_web_view_run_javascript(data.priv.webview, toStringz(js), null, null, null);
+        }
     }
 
     @safe @nogc nothrow void mainLoop()
@@ -518,14 +525,18 @@ class Dhanos_Linux : DhanosInterface
     in (h > 0)
     in (data.priv.window !is null)
     {
+         synchronized{
         gtk_widget_set_size_request(cast(GtkWidget*)data.priv.window, w, h);
+         }
     }
 
     @safe nothrow void setTitle(immutable(string) title)
     in (title !is null)
     in (title.length > 0)
     {
+         synchronized{
         gtk_window_set_title(data.priv.window, toStringz(title));
+         }
     }
     // this(immutable(string) title, int width, int height, bool resizable)
     // {
@@ -601,11 +612,11 @@ public:
         data.priv.should_exit = 1;
     }
 
-   ~this()
-   {
-      import std.stdio : writeln;
-      writeln("Dhanos_Linux de-allocated");
-   }
+//    ~this()
+//    {
+//       import std.stdio : writeln;
+//       writeln("Dhanos_Linux de-allocated");
+//    }
 
     // @nogc pure void function(immutable(string)) getJSCallback()
     // {
@@ -628,16 +639,19 @@ public:
 
     @nogc nothrow void setUserObject(in shared(void*) o)
     {
+         synchronized
         this.o = cast(shared(void*))o;
     }
 
-    @safe @nogc nothrow pure shared(void*) getUserObject() 
+    @safe @nogc nothrow shared(void*) getUserObject() 
     {
+          synchronized
         return o;
     }
 
    @safe @nogc nothrow void clearUserObject()
     {
+          synchronized
         this.o = null;
     }
 
@@ -655,7 +669,6 @@ public:
         this.width = width;
         this.height = height;
         this.resizable = resizable;
-
         data.title = cast(char*)toStringz(title);
         assert(data.title !is null);
         data.url = cast(char*) toStringz(url);

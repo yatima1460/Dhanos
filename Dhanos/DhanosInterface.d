@@ -30,9 +30,7 @@ interface DhanosInterface
    void close() nothrow; 
    void setBorder(bool) nothrow; 
 
-   void runJavascript(immutable(string) js) nothrow
-   in (js !is null)
-   in (js.length > 0);
+
 
    void setUserObject(shared(void*) o) nothrow
    in (o !is null);
