@@ -2,26 +2,43 @@ module Dhanos_Linux;
 
 import std.string : toStringz;
 
-// GLIB GAsyncQueue
-nothrow @nogc extern (C) struct GAsyncQueue;
-nothrow @nogc extern (C) GAsyncQueue* g_async_queue_new();
 
-// GTK general
-nothrow @nogc extern (C) int gtk_init_check(int* argc, char*** argv);
+alias GAsyncReadyCallback = void function(GObject* source_object, GAsyncResult* res, void* user_data);
 
-// GTK widget
-nothrow @nogc extern (C) struct GtkWidget;
-nothrow @nogc extern (C) void gtk_widget_set_size_request(GtkWidget*, int, int);
-nothrow @nogc extern (C) void gtk_widget_show_all(GtkWidget*);
+/+
+    GLIB GAsyncQueue
++/
+@nogc nothrow extern (C) struct GAsyncQueue;
+@trusted @nogc nothrow extern (C) GAsyncQueue* g_async_queue_new();
 
-// struct GtkRequisition {
-//   int width;
-//   int height;
-// };
+/+
+    GTK
++/
+@trusted @nogc nothrow extern (C) int gtk_init_check(int* argc, char*** argv);
+@trusted @nogc nothrow extern (C) int gtk_main_iteration_do(int);
+@trusted @nogc nothrow extern (C) void* G_CALLBACK(void*);
 
-// extern (C) void gtk_widget_size_request(GtkWidget*,GtkRequisition*);
+@nogc nothrow extern (C) struct GCancellable;
+@nogc nothrow extern (C) struct GAsyncResult;
+@nogc nothrow extern (C) struct GObject;
 
-// GTK window
+enum GConnectFlags
+{
+    G_CONNECT_AFTER,
+    G_CONNECT_SWAPPED
+};
+
+/+
+    GTKWidget
++/
+@nogc nothrow extern (C) struct GtkWidget;
+@trusted @nogc nothrow extern (C) GObject* G_OBJECT(GtkWidget*);
+@trusted @nogc nothrow extern (C) void gtk_widget_set_size_request(GtkWidget*, int, int);
+@trusted @nogc nothrow extern (C) void gtk_widget_show_all(GtkWidget*);
+
+/*
+    GTKWindow
+*/
 enum GtkWindowType
 {
     GTK_WINDOW_TOPLEVEL,
@@ -35,76 +52,68 @@ enum GtkWindowPosition
     GTK_WIN_POS_CENTER_ALWAYS,
     GTK_WIN_POS_CENTER_ON_PARENT
 }
+@nogc nothrow extern (C) struct GtkWindow;
+@trusted @nogc nothrow extern (C) GtkWindow* GTK_WINDOW(GtkWidget*);
+@trusted @nogc nothrow extern (C) GtkWindow* gtk_window_new(GtkWindowType);
+@trusted @nogc nothrow  extern (C) void gtk_window_set_gravity(GtkWindow*, GdkGravity);
+@trusted @nogc nothrow extern (C) void gtk_window_set_title(GtkWindow*, const char*);
+@trusted @nogc nothrow extern (C) void gtk_window_set_default_size(GtkWindow*, int, int);
+@trusted @nogc nothrow extern (C) void gtk_window_set_default_geometry (GtkWindow *window, int width, int height);
+@trusted @nogc nothrow extern (C) void gtk_window_set_resizable(GtkWindow*, bool);
+@trusted @nogc nothrow extern (C) void gtk_window_set_decorated(GtkWindow*, bool);
+@trusted @nogc nothrow extern (C) void gtk_window_fullscreen(GtkWindow*);
+@trusted @nogc nothrow extern (C) void gtk_window_unfullscreen(GtkWindow*);
+@trusted @nogc nothrow extern (C) void gtk_window_set_position(GtkWindow*, GtkWindowPosition);
+@trusted @nogc nothrow extern (C) void gtk_window_move(GtkWindow* window, int x, int y);
+@trusted @nogc nothrow extern (C) void gtk_window_set_keep_above(GtkWindow* w,bool);
 
-nothrow @nogc extern (C) struct GtkWindow;
-nothrow @nogc extern (C) GtkWindow* GTK_WINDOW(GtkWidget*);
-nothrow @nogc extern (C) GtkWindow* gtk_window_new(GtkWindowType);
-nothrow @nogc extern (C) void gtk_window_set_title(GtkWindow*, const char*);
-nothrow @nogc extern (C) void gtk_window_set_default_size(GtkWindow*, int, int);
-nothrow @nogc extern (C) void gtk_window_set_default_geometry (GtkWindow *window,
-                                 int width,
-                                 int height);
-nothrow @nogc extern (C) void gtk_window_set_resizable(GtkWindow*, bool);
-nothrow @nogc extern (C) void gtk_window_set_decorated(GtkWindow*, bool);
-nothrow @nogc extern (C) void gtk_window_fullscreen(GtkWindow*);
-nothrow @nogc extern (C) void gtk_window_unfullscreen(GtkWindow*);
-nothrow @nogc extern (C) void gtk_window_set_position(GtkWindow*, GtkWindowPosition);
-nothrow @nogc extern (C) void gtk_window_move(GtkWindow* window, int x, int y);
-nothrow @nogc extern (C) int gdk_screen_width();
-nothrow @nogc extern (C) int gdk_screen_height();
+/+
+    GDK
++/
+@trusted @nogc nothrow extern (C) int gdk_screen_width();
+@trusted @nogc nothrow extern (C) int gdk_screen_height();
+@trusted @nogc nothrow extern (C) void g_signal_connect_data(void* instance, const char* detailed_signal, void* c_handler, void* data, void* destroy_data, GConnectFlags connect_flags);
 
-enum GConnectFlags
-{
-    G_CONNECT_AFTER,
-    G_CONNECT_SWAPPED
-};
+@nogc nothrow extern (C) struct GtkAdjustment;
+@trusted @nogc nothrow extern (C) GtkWidget* gtk_scrolled_window_new(GtkAdjustment* hadjustment, GtkAdjustment* vadjustment);
 
-nothrow @nogc extern (C) void g_signal_connect_data(void* instance, const char* detailed_signal,
-        void* c_handler, void* data, void* destroy_data, GConnectFlags connect_flags);
+/+
+    GTKContainer
++/
+@nogc nothrow extern (C) struct GtkContainer;
+@trusted @nogc nothrow extern (C) GtkContainer* GTK_CONTAINER(GtkWidget*);
+@trusted @nogc nothrow extern (C) void gtk_container_add(GtkContainer* container, GtkWidget* widget);
 
-nothrow @nogc extern (C) struct GtkAdjustment;
-nothrow @nogc extern (C) GtkWidget* gtk_scrolled_window_new(GtkAdjustment* hadjustment,
-        GtkAdjustment* vadjustment);
+/+
+    WebKitUserContentManager
++/
+@nogc nothrow extern (C) struct WebKitUserContentManager;
+@trusted @nogc nothrow extern (C) WebKitUserContentManager* webkit_user_content_manager_new();
+@trusted @nogc nothrow extern (C) bool webkit_user_content_manager_register_script_message_handler(WebKitUserContentManager* manager, const char* name);
+@trusted @nogc nothrow extern (C) WebKitWebView* webkit_web_view_new_with_user_content_manager(WebKitUserContentManager* user_content_manager);
+@trusted @nogc nothrow extern (C) void webkit_web_view_run_javascript(WebKitWebView* web_view, const char* script, GCancellable* cancellable, GAsyncReadyCallback callback, void* user_data);
 
-nothrow @nogc extern (C) struct GtkContainer;
-nothrow @nogc extern (C) GtkContainer* GTK_CONTAINER(GtkWidget*);
-nothrow @nogc extern (C) void gtk_container_add(GtkContainer* container, GtkWidget* widget);
+/+
+    WebKitWebView
++/
+@nogc nothrow extern (C) struct WebKitWebView;
+@trusted @nogc nothrow extern (C) WebKitWebView* WEBKIT_WEB_VIEW(GtkWidget*);
+@trusted @nogc nothrow extern (C) void webkit_web_view_load_uri(WebKitWebView* web_view, const char* uri);
+@trusted @nogc nothrow extern (C) WebKitSettings* webkit_web_view_get_settings(WebKitWebView* web_view);
 
-nothrow @nogc extern (C) struct WebKitUserContentManager;
+/+
+    WebKitSettings
++/
+@nogc nothrow extern (C) struct WebKitSettings;
+@trusted @nogc nothrow extern (C) void webkit_settings_set_enable_write_console_messages_to_stdout(WebKitSettings* settings, bool enabled);
+@trusted @nogc nothrow extern (C) void webkit_settings_set_enable_developer_extras(WebKitSettings* settings, bool enabled);
+@trusted @nogc nothrow extern (C) void webkit_settings_set_allow_file_access_from_file_urls(WebKitSettings*, bool);
+@trusted @nogc nothrow extern (C) void webkit_settings_set_allow_universal_access_from_file_urls(WebKitSettings*, bool);
 
-nothrow @nogc extern (C) GObject* G_OBJECT(GtkWidget*);
 
-nothrow @nogc extern (C) void* G_CALLBACK(void*);
 
-nothrow @nogc extern (C) WebKitWebView* WEBKIT_WEB_VIEW(GtkWidget*);
-nothrow @nogc extern (C) WebKitUserContentManager* webkit_user_content_manager_new();
-nothrow @nogc extern (C) bool webkit_user_content_manager_register_script_message_handler(
-        WebKitUserContentManager* manager, const char* name);
-nothrow @nogc extern (C) struct WebKitSettings;
-nothrow @nogc extern (C) struct WebKitWebView;
 
-nothrow @nogc extern (C) int gtk_main_iteration_do(int);
-nothrow @nogc extern (C) WebKitSettings* webkit_web_view_get_settings(WebKitWebView* web_view);
-nothrow @nogc extern (C) void webkit_settings_set_enable_write_console_messages_to_stdout(
-        WebKitSettings* settings, bool enabled);
-nothrow @nogc extern (C) void webkit_settings_set_enable_developer_extras(WebKitSettings* settings, bool enabled);
 
-nothrow @nogc extern (C) void webkit_settings_set_allow_file_access_from_file_urls(WebKitSettings*, bool);
-nothrow @nogc extern (C) void webkit_settings_set_allow_universal_access_from_file_urls(WebKitSettings*, bool);
-
-nothrow @nogc extern (C) struct GCancellable;
-nothrow @nogc extern (C) struct GAsyncResult;
-nothrow @nogc extern (C) struct GObject;
-alias GAsyncReadyCallback = void function(GObject* source_object,
-        GAsyncResult* res, void* user_data);
-nothrow @nogc extern (C) void webkit_web_view_run_javascript(WebKitWebView* web_view, const char* script,
-        GCancellable* cancellable, GAsyncReadyCallback callback, void* user_data);
-
-nothrow @nogc extern (C) GtkWidget* webkit_web_view_new_with_user_content_manager(
-        WebKitUserContentManager* user_content_manager);
-nothrow @nogc extern (C) void webkit_web_view_load_uri(WebKitWebView* web_view, const char* uri);
-
-nothrow @nogc extern (C) void gtk_window_set_keep_above(GtkWindow* w,bool);
 
 
 enum GdkGravity
@@ -121,13 +130,13 @@ enum GdkGravity
     GDK_GRAVITY_STATIC
 };
 
-@nogc extern (C) void gtk_window_set_gravity(GtkWindow*, GdkGravity);
+
 
 struct webview_priv
 {
     GtkWindow* window;
     GtkWidget* scroller;
-    GtkWidget* webview;
+    WebKitWebView* webview;
     GtkWidget* inspector_window;
     GAsyncQueue* queue;
 
@@ -135,6 +144,8 @@ struct webview_priv
     int js_busy;
     int should_exit;
 };
+
+
 
 //alias void (*webview_external_invoke_cb_t)(struct webview *w, const char *arg);
 
@@ -161,11 +172,11 @@ struct webview
 //extern (C) int webview(const char* title, const char* url, int width, int height, int resizable);
 // extern (C) int webview_init(webview* w);
 // extern (C) int webview_loop(webview* w, bool);
-nothrow @nogc extern (C) int webview_eval(webview* w, const char* js);
-//nothrow @nogc extern (C) void webview_terminate(webview* w);
+@nogc nothrow extern (C) int webview_eval(webview* w, const char* js);
+//@nogc nothrow extern (C) void webview_terminate(webview* w);
 
 alias webview_dispatch_fn = void function(webview* w, void* arg);
-nothrow @nogc extern (C) void webview_dispatch(webview* w, webview_dispatch_fn fn, void* arg);
+@nogc nothrow extern (C) void webview_dispatch(webview* w, webview_dispatch_fn fn, void* arg);
 
 import std.stdio : writeln;
 import std.string : fromStringz;
@@ -184,14 +195,16 @@ alias JSValueRef = void*;
 alias JSStringRef = void*;
 
 
-nothrow @nogc extern (C) JSStringRef JSValueToStringCopy(JSGlobalContextRef, JSValueRef, void*);
-nothrow @nogc extern (C) size_t JSStringGetMaximumUTF8CStringSize(JSStringRef);
-nothrow @nogc extern (C) JSGlobalContextRef webkit_javascript_result_get_global_context(WebKitJavascriptResult* js_result);
-nothrow @nogc extern (C) JSValueRef webkit_javascript_result_get_value(WebKitJavascriptResult* js_result);
-nothrow @nogc extern (C) void JSStringGetUTF8CString(JSStringRef, char*, size_t);
-nothrow @nogc extern (C) void JSStringRelease(JSStringRef);
+@nogc nothrow extern (C) JSStringRef JSValueToStringCopy(JSGlobalContextRef, JSValueRef, void*);
+@nogc nothrow extern (C) size_t JSStringGetMaximumUTF8CStringSize(JSStringRef);
+@nogc nothrow extern (C) JSGlobalContextRef webkit_javascript_result_get_global_context(WebKitJavascriptResult* js_result);
+@nogc nothrow extern (C) JSValueRef webkit_javascript_result_get_value(WebKitJavascriptResult* js_result);
+@nogc nothrow extern (C) void JSStringGetUTF8CString(JSStringRef, char*, size_t);
+@nogc nothrow extern (C) void JSStringRelease(JSStringRef);
 
 alias gpointer = void*;
+
+
 
 import std.exception : enforce;
 
@@ -439,12 +452,12 @@ class Dhanos_Linux : DhanosInterface
 
 
 
-    void setAlwaysOnTop(bool flag)
+    @safe @nogc nothrow void setAlwaysOnTop(bool flag)
     {
         gtk_window_set_keep_above(data.priv.window, flag);
     }
 
-    void setCallback(immutable(string) callbackName, DhanosJSCallback cb)
+    @safe void setCallback(immutable(string) callbackName, DhanosJSCallback cb)
     in (callbackName !is null)
     in (callbackName.length != 0)
     in (cb !is null)
@@ -454,8 +467,7 @@ class Dhanos_Linux : DhanosInterface
         //writeln("[Dhanos] setCallback " ~ callbackName ~ " => " ~ to!string(cb));
         callbacks[callbackName] = cb;
         auto callbackNameCString = toStringz(callbackName);
-        webkit_user_content_manager_register_script_message_handler(webkitUserContentManager,
-                callbackNameCString);
+        webkit_user_content_manager_register_script_message_handler(webkitUserContentManager, callbackNameCString);
 
         DhanosCallbackData* dcd = new DhanosCallbackData();
         dcd.callback_func = cb;
@@ -474,7 +486,7 @@ class Dhanos_Linux : DhanosInterface
         );
 
         webkit_web_view_run_javascript(
-            cast(WebKitWebView*)(data.priv.webview),
+            data.priv.webview,
             toStringz("dhanos." ~ callbackName ~ "=function(x){" ~ "window.webkit.messageHandlers." ~ callbackName ~ ".postMessage(x);}"),
             null, 
             null, 
@@ -482,16 +494,13 @@ class Dhanos_Linux : DhanosInterface
         );
     }
 
-    void runJavascript(immutable(string) js)
-    in (js !is null)
-    in (js.length != 0)
+    @safe nothrow void runJavascript(immutable(string) js)
     in (data.priv.webview !is null)
     {
-        webkit_web_view_run_javascript(cast(WebKitWebView*)(data.priv.webview),
-                toStringz(js), null, null, null);
+        webkit_web_view_run_javascript(data.priv.webview, toStringz(js), null, null, null);
     }
 
-    void mainLoop()
+    @safe @nogc nothrow void mainLoop()
    
     {
         import std.stdio : writeln;
@@ -504,7 +513,7 @@ class Dhanos_Linux : DhanosInterface
 
     }
 
-    @nogc void setWindowSize(int w,int h)
+    @nogc nothrow  void setWindowSize(int w,int h)
     in (w > 0)
     in (h > 0)
     in (data.priv.window !is null)
@@ -512,7 +521,7 @@ class Dhanos_Linux : DhanosInterface
         gtk_widget_set_size_request(cast(GtkWidget*)data.priv.window, w, h);
     }
 
-    void setTitle(immutable(string) title)
+    @safe nothrow void setTitle(immutable(string) title)
     in (title !is null)
     in (title.length > 0)
     {
@@ -587,12 +596,12 @@ private:
 
 public:
 
-    @nogc void close()
+    @safe @nogc nothrow void close()
     {
         data.priv.should_exit = 1;
     }
 
-    ~this()
+   ~this()
    {
       import std.stdio : writeln;
       writeln("Dhanos_Linux de-allocated");
@@ -615,19 +624,19 @@ public:
 
     // }
 
-    void* o;
+    shared(void*) o;
 
-    @nogc @safe void setUserObject(void* o)
+    @nogc nothrow void setUserObject(in shared(void*) o)
     {
-        this.o = o;
+        this.o = cast(shared(void*))o;
     }
 
-    @nogc @safe pure void* getUserObject()
+    @safe @nogc nothrow pure shared(void*) getUserObject() 
     {
         return o;
     }
 
-   @nogc @safe void clearUserObject()
+   @safe @nogc nothrow void clearUserObject()
     {
         this.o = null;
     }
@@ -635,7 +644,7 @@ public:
 
     
 
-     void init(immutable(string) title, immutable(string) url, int width, int height, bool resizable)
+     void init(in immutable(string) title,in  immutable(string) url,in  int width,in  int height,in  bool resizable)
     in (title !is null)
     in (url !is null)
     in (width > 0)
@@ -745,7 +754,7 @@ public:
                 cast(void*)&data, null, GConnectFlags.G_CONNECT_AFTER);
 
         // Add the browser to GTK
-        gtk_container_add(cast(GtkContainer*)(data.priv.scroller), data.priv.webview);
+        gtk_container_add(cast(GtkContainer*)(data.priv.scroller), cast(GtkWidget*)data.priv.webview);
 
         // Webkit settings here
         WebKitSettings* settings = webkit_web_view_get_settings(cast(WebKitWebView*)(data.priv.webview));
@@ -812,7 +821,7 @@ public:
        
     }
 
-    @nogc void setBorder(bool visible)
+    @safe @nogc nothrow void setBorder(bool visible)
     {
         gtk_window_set_decorated(data.priv.window, visible);
     }
