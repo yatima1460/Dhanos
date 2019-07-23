@@ -3,7 +3,7 @@ module Dhanos;
 import DhanosInterface : DhanosInterface;
 
 
-DhanosInterface getNewPlatformInstance(immutable(string) title, immutable(string) url, int width, int height, bool resizable)
+DhanosInterface getNewPlatformInstance(in immutable(string) title,in  immutable(string) url,in  int width,in  int height,in  bool resizable)
 in (title !is null)
 in (title.length > 0)
 in (url !is null)

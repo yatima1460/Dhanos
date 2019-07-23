@@ -1,7 +1,7 @@
 module DhanosInterface;
 
 
-alias DhanosJSCallback = extern(C) void function(DhanosInterface, immutable(string));
+alias DhanosJSCallback = void function(DhanosInterface, immutable(string));
 
 interface DhanosInterface
 {
@@ -46,4 +46,6 @@ interface DhanosInterface
    void setWindowSize(int width,int height) nothrow
    in (width > 0)
    in (height > 0);
+
+
 }

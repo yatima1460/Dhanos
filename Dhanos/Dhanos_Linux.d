@@ -592,6 +592,12 @@ public:
         data.priv.should_exit = 1;
     }
 
+    ~this()
+   {
+      import std.stdio : writeln;
+      writeln("Dhanos_Linux de-allocated");
+   }
+
     // @nogc pure void function(immutable(string)) getJSCallback()
     // {
     //     return callback;
