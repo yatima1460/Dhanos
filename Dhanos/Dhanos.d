@@ -3,7 +3,7 @@ module Dhanos;
 import DhanosInterface : DhanosInterface;
 
 
-DhanosInterface getNewPlatformInstance(in immutable(string) title,in  immutable(string) url,in  int width,in  int height,in  bool resizable)
+DhanosInterface getNewPlatformInstance(in immutable(string) title,in  immutable(string) url,in  int width,in  int height,in  bool resizable, void function(DhanosInterface) loadFinished)
 in (title !is null)
 in (title.length > 0)
 in (url !is null)
@@ -34,7 +34,7 @@ in (height > 0)
     {
         throw new Exception("Your platform is still not supported!");
     }
-    d.init(title, url, width, height, resizable);
+    d.init(title, url, width, height, resizable,loadFinished);
     return d;
 }
 
