@@ -5,13 +5,14 @@ alias DhanosJSCallback = void function(ref DhanosInterface, immutable(string));
 
 interface DhanosInterface
 {
-   void init(in immutable(string) title,in  immutable(string) url,in  int width,in  int height,in bool resizable)
+   void init(in immutable(string) title,in  immutable(string) url,in  int width,in  int height,in bool resizable,void function(DhanosInterface) loadFinished)
    in (title !is null)
    in (title.length > 0)
    in (url !is null)
    in (url.length > 0)
    in (width > 0)
-   in (height > 0);
+   in (height > 0)
+   in (loadFinished !is null);
 
    void runJavascript(immutable(string) js)
    in (js !is null)
@@ -19,6 +20,8 @@ interface DhanosInterface
 
    // void setJSCallback(void function(immutable(string)) cb)
    // in (cb !is null);
+
+   // void function(DhanosInterface dhanos) loadFinished();
 
    void setCallback(in immutable(string) callbackName,in DhanosJSCallback cb) nothrow
    in (callbackName !is null)
@@ -28,16 +31,15 @@ interface DhanosInterface
    void mainLoop() nothrow;
 
    void close() nothrow; 
-   void setBorder(bool) nothrow; 
+   void setBorder(bool); 
 
+   import std.variant : Variant;
 
+   void setUserObject(Variant o);
 
-   void setUserObject(shared(void*) o) nothrow
-   in (o !is null);
+   Variant getUserObject() ;
 
-   shared(void*) getUserObject() nothrow ;
-
-   void clearUserObject() nothrow;
+   //void clearUserObject() nothrow;
 
    void setAlwaysOnTop(bool flag) nothrow;
 

@@ -1,19 +1,33 @@
 module Examples.Minimal;
 
-import std.path : dirName, buildNormalizedPath, absolutePath, buildPath;
-import DhanosInterface : DhanosInterface;
-import Dhanos : getNewPlatformInstance;
+// import std.path : dirName, buildNormalizedPath, absolutePath, buildPath;
+// import DhanosInterface : DhanosInterface;
+// import Dhanos : getNewPlatformInstance;
+
+extern (C++,ultralight) abstract class Platform
+{
+    extern (C++) static Platform instance();
+
+};
+
+// extern (C++) class Config;
+
+// extern (C++,Platform) Platform instance();
 
 int main(string[] args)
 {
-    immutable(string) dhanos_project_path = dirName(dirName(
-            dirName(dirName(absolutePath(buildNormalizedPath(args[0]))))));
+    // Setup our Platform
+    Platform platform = Platform.instance();
+    //   platform.set_config(Config());
+    //   platform.set_gpu_driver(new GPUDriverD3D(new D3DRenderer()));
+    //   platform.set_font_loader(new FontLoaderWin());
 
-    
-    DhanosInterface d = getNewPlatformInstance("Minimal Dhanos example",
-                            buildPath("file:" ~ dhanos_project_path ~ "/LICENSE"),
-                            800,450,
-                            true);
-    d.mainLoop();
+    // Create the Renderer
+    //Ref<Renderer> renderer = Renderer.Create();
+
+    // Create the View
+    //Ref<View> view = renderer.CreateView(800, 600, false);
+    //view.LoadHTML("<h1>Hello World!</h1>");
+
     return 0;
 }
